@@ -1,0 +1,23 @@
+{
+  "name": "pck_flb",
+  "version": "1.0.0",
+  "description": "PCK Flashloan Bot",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts":{
+    "test": "jest",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "latest",
+    "@types/node": "latest",
+    "axios": "latest",
+    "console-table-printer": "latest",
+    "dotenv": "latest",
+    "ethers": "^5.5.3",
+    "log4js": "^6.4.6",
+    "ts-node": "latest",
+    "typescript": "latest"
+  }
+}
