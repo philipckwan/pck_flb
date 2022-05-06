@@ -19,5 +19,10 @@
     "log4js": "^6.4.6",
     "ts-node": "latest",
     "typescript": "latest"
+  },
+  "devDependencies": {
+    "@types/jest": "latest",
+    "@uniswap/sdk-core": "^3.0.1",
+    "@uniswap/v3-sdk": "^3.8.1"
   }
 }
