@@ -55,11 +55,15 @@ export const main = async () => {
     for (let aSwapRoutes of swapRoutesList) {
       //printSwapRoutes(aSwapRoutes);  
       let bnLoanAmountUSDx = getBigNumber(loanAmountUSDx, aSwapRoutes.swapPairRoutes[0].fromToken.decimals);
-      await fetchSwapPrices(aSwapRoutes, bnLoanAmountUSDx);
-      printSwapRoutes(aSwapRoutes);  
-      let [diffAmt, diffPct] = compareSwap(aSwapRoutes);
-      flog.debug(`index.main: ${getSwapsStrings(aSwapRoutes)}, diffAmt:${diffAmt}, diffPct:${diffPct};`);
-      clog.debug(`index.main: ${getSwapsStrings(aSwapRoutes)}, diffAmt:${diffAmt}, diffPct:${diffPct};`);
+      const func = async () => {
+        //clog.debug(`index.main.func: START; ${getSwapsStrings(aSwapRoutes)};`);
+        await fetchSwapPrices(aSwapRoutes, bnLoanAmountUSDx);
+        let [diffAmt, diffPct] = compareSwap(aSwapRoutes);
+        flog.debug(`index.main.func: ${getSwapsStrings(aSwapRoutes)}, diffAmt:${diffAmt}, diffPct:${diffPct};`);
+        //clog.debug(`index.main.func: ${getSwapsStrings(aSwapRoutes)}, diffAmt:${diffAmt}, diffPct:${diffPct};`);
+      }
+      func();  
+      setInterval(func, 10000);
     }
     
     console.log("index.main: END;");
