@@ -1,4 +1,4 @@
-import {getBigNumber, formatDate} from "../utility";
+import {getSwapsStrings, getBigNumber, formatDate} from "../utility";
 import {IToken, IRouter, IToAmountAndRate, ISwapRoutes} from "../interfaces";
 import * as log4js from "log4js";
 import {getFeeOnUniV3, getPriceOnUniV3} from "./priceV3";
@@ -46,32 +46,36 @@ export const getSwapAmountAndRate = async (fromToken : IToken, toToken : IToken,
     return resultToAmountAndRate;
 };
 
-/*
-export const getSwapPrice = async (fromToken : IToken, toToken : IToken, router : IRouter, fromAmount:BigNumber = getBigNumber(10000)) => {
-    //let bnFromAmount = fromAmount;
-    let bnToAmount = getBigNumber(0);
-    let startTime = Date.now();
-    let fromAmountStr = ethers.utils.formatUnits(fromAmount,fromToken.decimals);
-    //clog.debug(`utility.getSwapPrice: ${fromToken.symbol} -> ${toToken.symbol} @ [${router.name}(${router.address})] for [${fromAmount}]/bn:[${bnFromAmount}];`);
-    clog.debug(`utility.getSwapPrice: ${fromToken.symbol} -> ${toToken.symbol} @ [${router.name}] for $${fromAmountStr};`);
-    if (router.name == "POLYGON_UNISWAP_V3") {
-        //clog.debug(`utility.getSwapPrice: calling getFeeOnUniV3;`);
-        let fee = getFeeOnUniV3(fromToken.symbol, toToken.symbol);
-        //clog.debug(`_fee:${fee};`);
-        bnToAmount = await getPriceOnUniV3(fromToken.address, toToken.address, fromAmount, fee);
-    } else {
-        //clog.debug(`utility.getSwapPrice: calling getPriceOnUniV2;`);
-        bnToAmount = await getPriceOnUniV2(fromToken.address, toToken.address, fromAmount, router.address);
+
+export const fetchSwapPrices = async (aSwapRoutes:ISwapRoutes, loanAmountUSDx?:BigNumber) => {
+
+    clog.debug(`index.fetchSwapPrices: START; ${getSwapsStrings(aSwapRoutes)};`);
+    //for (let aSwapPairRoutes of aSwapRoutes.swapPairRoutes) {
+    for (let i = 0; i < aSwapRoutes.swapPairRoutes.length; i++) {
+      let aSwapPairRoutes = aSwapRoutes.swapPairRoutes[i];
+      //let maxBN:BigNumber = getBigNumber(0);
+      let maxRate:number = 0;
+      let aLoanAmount = (i == 0) ? loanAmountUSDx : aSwapPairRoutes.fromAmount;
+      for (let j = 0; j < aSwapPairRoutes.routerToAmountList.length; j++) {
+      //for (let aRouteToAmount of aSwapPairRoutes.routerToAmountList) {
+        let aRouteToAmount = aSwapPairRoutes.routerToAmountList[j];
+        try {
+          let amountAndRate = await getSwapAmountAndRate(aSwapPairRoutes.fromToken, aSwapPairRoutes.toToken, aRouteToAmount.router, aLoanAmount);
+          aRouteToAmount.toFromRate = amountAndRate.toFromRate;
+          aRouteToAmount.toAmount = amountAndRate.toAmount;        
+          if (aRouteToAmount.toFromRate > maxRate) {
+            aSwapRoutes.idxBestRouterToAmountList[i] = j;
+            maxRate = aRouteToAmount.toFromRate;
+          }        
+        } catch (e) {
+          aRouteToAmount.toFromRate = 0;
+        } 
+      }
+      if (i != aSwapRoutes.swapPairRoutes.length - 1) {
+        // has the next route, update next pair's fromAmount
+        aSwapRoutes.swapPairRoutes[i+1].fromAmount = aSwapPairRoutes.routerToAmountList[aSwapRoutes.idxBestRouterToAmountList[i]].toAmount;
+      } 
     }
-    let endTime = Date.now();
-    let timeDiff = (endTime - startTime) / 1000;
-    //let bDate = formatDate(startTime);
-    let bnToAmountStr = bnToAmount.toString();
-    let bnToAmountStrLen = bnToAmountStr.length;
-    let bnToAmountHeadStr = bnToAmountStr.substring(0,bnToAmountStrLen - toToken.decimals);
-    let bnToAmountTailStr = bnToAmountStr.substring(bnToAmountStrLen - toToken.decimals);
-    //clog.debug(`__bnToAmountStr:${bnToAmountStr};bnToAmountStrLen:${bnToAmountStrLen};bnToAmountHeadStr:${bnToAmountHeadStr};bnToAmountTailStr:${bnToAmountTailStr};`);
-    slog.debug(`${fromToken.symbol.padStart(6)}|${toToken.symbol.padStart(6)}|${router.name.padStart(18)}|${bnToAmountHeadStr.padStart(5)}|${bnToAmountTailStr.padStart(19)}|${formatDate(startTime)}|${formatDate(endTime)}|${timeDiff.toFixed(3)}`);
-    return bnToAmount;
-};
-*/
+    //printSwapRoutes(aSwapRoutes);
+    clog.debug(`index.fetchSwapPrices: END;`);
+  }

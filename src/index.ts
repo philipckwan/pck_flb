@@ -3,7 +3,8 @@ let argEnv = process.argv[2] ? process.argv[2] : "";
 dotEnvConfig({path:`${argEnv}.env`});
 import * as log4js from "log4js";
 import {ISwapRoutes} from "./interfaces";
-import {getBigNumber, parseRouterLists, parseSwapLists, fetchSwapPrices, printSwapRoutes, compareSwap, getSwapsStrings} from "./utility";
+import {getBigNumber, parseRouterLists, parseSwapLists, printSwapRoutes, compareSwap, getSwapsStrings} from "./utility";
+import {fetchSwapPrices} from "./uniswap/uniswapPrice";
 import {BigNumber} from "ethers";
 
 const flog=log4js.getLogger("file");
@@ -30,7 +31,7 @@ const init = () => {
 }
 
 export const main = async () => {
-    console.log("index.main: v0.7; START;");
+    console.log("index.main: v0.8; START;");
 
     init();
 

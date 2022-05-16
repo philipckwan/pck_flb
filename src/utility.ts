@@ -4,7 +4,6 @@ import * as log4js from "log4js";
 import {ethers, BigNumber} from "ethers";
 import {IRouter, ISwapRoutes, ISwapPairRoutes} from "./interfaces";
 import {ERC20_TOKEN, SWAP_ROUTER} from "./addresses";
-import {getSwapAmountAndRate} from  "./uniswap/uniswapPrice";
 
 const flog = log4js.getLogger("file");
 const clog = log4js.getLogger("console");
@@ -67,40 +66,6 @@ export const parseSwapLists = (swapRoutesListStr:string, routers:IRouter[], loan
         swapRoutesList.push(aSwapRoutes);
       }
       return swapRoutesList;
-}
-
-
-export const fetchSwapPrices = async (aSwapRoutes:ISwapRoutes, loanAmountUSDx?:BigNumber) => {
-
-  clog.debug(`index.fetchSwapPrices: START; ${getSwapsStrings(aSwapRoutes)};`);
-  //for (let aSwapPairRoutes of aSwapRoutes.swapPairRoutes) {
-  for (let i = 0; i < aSwapRoutes.swapPairRoutes.length; i++) {
-    let aSwapPairRoutes = aSwapRoutes.swapPairRoutes[i];
-    //let maxBN:BigNumber = getBigNumber(0);
-    let maxRate:number = 0;
-    let aLoanAmount = (i == 0) ? loanAmountUSDx : aSwapPairRoutes.fromAmount;
-    for (let j = 0; j < aSwapPairRoutes.routerToAmountList.length; j++) {
-    //for (let aRouteToAmount of aSwapPairRoutes.routerToAmountList) {
-      let aRouteToAmount = aSwapPairRoutes.routerToAmountList[j];
-      try {
-        let amountAndRate = await getSwapAmountAndRate(aSwapPairRoutes.fromToken, aSwapPairRoutes.toToken, aRouteToAmount.router, aLoanAmount);
-        aRouteToAmount.toFromRate = amountAndRate.toFromRate;
-        aRouteToAmount.toAmount = amountAndRate.toAmount;        
-        if (aRouteToAmount.toFromRate > maxRate) {
-          aSwapRoutes.idxBestRouterToAmountList[i] = j;
-          maxRate = aRouteToAmount.toFromRate;
-        }        
-      } catch (e) {
-        aRouteToAmount.toFromRate = 0;
-      } 
-    }
-    if (i != aSwapRoutes.swapPairRoutes.length - 1) {
-      // has the next route, update next pair's fromAmount
-      aSwapRoutes.swapPairRoutes[i+1].fromAmount = aSwapPairRoutes.routerToAmountList[aSwapRoutes.idxBestRouterToAmountList[i]].toAmount;
-    } 
-  }
-  //printSwapRoutes(aSwapRoutes);
-  clog.debug(`index.fetchSwapPrices: END;`);
 }
 
 export const printSwapRoutes = (aSwapRoutes:ISwapRoutes) => {

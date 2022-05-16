@@ -81,7 +81,7 @@ tokenOut: string,
 amountIn: BigNumber,
 fee: number
 ): Promise<BigNumber> => {
-    clog.debug(`priceV3.getPriceOnUniV3: 1.0; ${tokenIn}; ${tokenOut}; ${amountIn}; ${fee};`);
+    //clog.debug(`priceV3.getPriceOnUniV3: 1.0; ${tokenIn}; ${tokenOut}; ${amountIn}; ${fee};`);
 
     let quotedAmountOut = 0;
     try {
@@ -93,13 +93,13 @@ fee: number
         0
     );
     } catch (ex) {
-        console.log(`priceV3.getPriceOnUniV3: ERROR;`);
-        console.log(ex);
+        clog.debug(`priceV3.getPriceOnUniV3: ERROR;`);
+        clog.debug(ex);
         throw(ex);
     }
     if (!ethers.BigNumber.isBigNumber(quotedAmountOut)) {
         return getBigNumber(0);
     }
-    clog.debug(`priceV3.getPriceOnUniV3: 2.0;`);
+    //clog.debug(`priceV3.getPriceOnUniV3: 2.0;`);
     return quotedAmountOut;
 };
