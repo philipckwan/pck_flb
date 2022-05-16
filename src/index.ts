@@ -30,7 +30,7 @@ const init = () => {
 }
 
 export const main = async () => {
-    console.log("index.main: v0.6; START;");
+    console.log("index.main: v0.7; START;");
 
     init();
 

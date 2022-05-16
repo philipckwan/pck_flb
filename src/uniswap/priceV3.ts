@@ -85,7 +85,7 @@ fee: number
 
     let quotedAmountOut = 0;
     try {
-    let quotedAmountOut = await quoterContract.callStatic.quoteExactInputSingle(
+    quotedAmountOut = await quoterContract.callStatic.quoteExactInputSingle(
         tokenIn,
         tokenOut,
         fee,
@@ -93,8 +93,8 @@ fee: number
         0
     );
     } catch (ex) {
-        flog.error(`priceV3.getPriceOnUniV3: ERROR;`);
-        flog.error(ex);
+        console.log(`priceV3.getPriceOnUniV3: ERROR;`);
+        console.log(ex);
         throw(ex);
     }
     if (!ethers.BigNumber.isBigNumber(quotedAmountOut)) {
