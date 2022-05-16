@@ -81,16 +81,25 @@ tokenOut: string,
 amountIn: BigNumber,
 fee: number
 ): Promise<BigNumber> => {
-    //clog.debug(`priceV3.getPriceOnUniV3: 1.0;`);
-    const quotedAmountOut = await quoterContract.callStatic.quoteExactInputSingle(
+    clog.debug(`priceV3.getPriceOnUniV3: 1.0; ${tokenIn}; ${tokenOut}; ${amountIn}; ${fee};`);
+
+    let quotedAmountOut = 0;
+    try {
+    let quotedAmountOut = await quoterContract.callStatic.quoteExactInputSingle(
         tokenIn,
         tokenOut,
         fee,
         amountIn.toString(),
         0
     );
+    } catch (ex) {
+        flog.error(`priceV3.getPriceOnUniV3: ERROR;`);
+        flog.error(ex);
+        throw(ex);
+    }
     if (!ethers.BigNumber.isBigNumber(quotedAmountOut)) {
         return getBigNumber(0);
     }
+    clog.debug(`priceV3.getPriceOnUniV3: 2.0;`);
     return quotedAmountOut;
 };
