@@ -31,7 +31,7 @@ const init = () => {
 }
 
 export const main = async () => {
-    console.log("index.main: v0.8; START;");
+    console.log("index.main: START;");
 
     init();
 
@@ -51,7 +51,12 @@ export const main = async () => {
 
     let swapRouteListStr = process.env.SWAP_ROUTE_LIST ? process.env.SWAP_ROUTE_LIST : "";
     let swapRoutesList = parseSwapLists(swapRouteListStr, routersList, loanAmountUSDx);
+
+    let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
     
+    let msg = `index.main: v0.9; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    clog.debug(msg);
+    flog.debug(msg);
     for (let aSwapRoutes of swapRoutesList) {
       //printSwapRoutes(aSwapRoutes);  
       let bnLoanAmountUSDx = getBigNumber(loanAmountUSDx, aSwapRoutes.swapPairRoutes[0].fromToken.decimals);
@@ -59,11 +64,11 @@ export const main = async () => {
         //clog.debug(`index.main.func: START; ${getSwapsStrings(aSwapRoutes)};`);
         await fetchSwapPrices(aSwapRoutes, bnLoanAmountUSDx);
         let [diffAmt, diffPct] = compareSwap(aSwapRoutes);
-        flog.debug(`index.main.func: ${getSwapsStrings(aSwapRoutes)}, diffAmt:${diffAmt}, diffPct:${diffPct};`);
-        //clog.debug(`index.main.func: ${getSwapsStrings(aSwapRoutes)}, diffAmt:${diffAmt}, diffPct:${diffPct};`);
+        let isOpp = diffAmt > 0;
+        flog.debug(`index.main.func: ${getSwapsStrings(aSwapRoutes)};isOpp:${isOpp}; diffAmt:${diffAmt}, diffPct:${diffPct};`);
       }
       func();  
-      setInterval(func, 10000);
+      setInterval(func, pollIntervalMSec);
     }
     
     console.log("index.main: END;");
