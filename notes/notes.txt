@@ -5,3 +5,7 @@ DONE-enable the multi-logs and .env configurations
 DONE-identify opportunity
 -after identify opportunity, call flashloan
 DONE-make the time interval to be configurable
+DONE(18/5)-get gas price when pflb isOpp:true
+-add a new log to track if flashloan is executed
+-add grouping line to stats.log so that easier to tell within the same check
+-simplify the log pattern to reduce information such as year, logger name, etc...

@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts":{
     "test": "jest",
+    "test_bash":"test/bash_test1.sh",
     "build": "tsc",
     "start": "node dist/index.js"
   },

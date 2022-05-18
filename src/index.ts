@@ -6,6 +6,8 @@ import {ISwapRoutes} from "./interfaces";
 import {getBigNumber, parseRouterLists, parseSwapLists, printSwapRoutes, compareSwap, getSwapsStrings} from "./utility";
 import {fetchSwapPrices} from "./uniswap/uniswapPrice";
 import {BigNumber} from "ethers";
+import {PCKFLBConfig} from "./config";
+import {gasPriceCalculator} from "./utils/gasPriceCalculator";
 
 const flog=log4js.getLogger("file");
 const clog=log4js.getLogger("console");
@@ -54,9 +56,22 @@ export const main = async () => {
 
     let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
     
-    let msg = `index.main: v0.9; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v0.10; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
     clog.debug(msg);
     flog.debug(msg);
+
+    PCKFLBConfig.init();
+    PCKFLBConfig.logConfigs();
+
+    gasPriceCalculator.init();
+    gasPriceCalculator.logConfigs();
+
+    /*
+    if (true) {
+      log4js.shutdown(function() { process.exit(1); });
+    }
+    */
+
     for (let aSwapRoutes of swapRoutesList) {
       //printSwapRoutes(aSwapRoutes);  
       let bnLoanAmountUSDx = getBigNumber(loanAmountUSDx, aSwapRoutes.swapPairRoutes[0].fromToken.decimals);
@@ -66,8 +81,11 @@ export const main = async () => {
         let [diffAmt, diffPct] = compareSwap(aSwapRoutes);
         let isOpp = diffAmt > 0;
         flog.debug(`index.main.func: ${getSwapsStrings(aSwapRoutes)};isOpp:${isOpp}; diffAmt:${diffAmt}, diffPct:${diffPct};`);
+        if (isOpp) {
+          flog.debug(`index.main.func: gasPrice:${await gasPriceCalculator.getGasPrice()}`);
+        }
       }
-      func();  
+      //func();  
       setInterval(func, pollIntervalMSec);
     }
     
