@@ -11,5 +11,5 @@ DONE(18/5)-get gas price when pflb isOpp:true
 -simplify the log pattern to reduce information such as year, logger name, etc...
 DONE(20/5)-add a config parameter for flashloan threshold, i.e. if amount is > $10, then execute flashloan
 DONE(20/5)-time the polyscan get gasPrice API call
--consider to add ethers get gasPrice and compare the time with polyscan API
--or, detach the API get gasPrice call to be run in parallel and save to a cache
+DONE(20/5 v0.13)-consider to add ethers get gasPrice and compare the time with polyscan API
+DONE(20/5 v0.13)-or, detach the API get gasPrice call to be run in parallel and save to a cache

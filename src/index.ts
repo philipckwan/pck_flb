@@ -5,7 +5,7 @@ import * as log4js from "log4js";
 import {getBigNumber, parseRouterLists, parseSwapLists, printSwapRoutes, compareSwap, getSwapsStrings} from "./utility";
 import {fetchSwapPrices} from "./uniswap/uniswapPrice";
 import {PCKFLBConfig} from "./config";
-import {gasPriceCalculator} from "./utils/gasPriceCalculator";
+import {gasPriceCalculator} from "./utils/GasPriceCalculator";
 import {PCKFlashloanExecutor} from "./flashloan/FlashloanExecutor";
 import {PCKWeb3Handler} from "./utils/Web3Handler";
 import {PCKPriceV3} from "./uniswap/priceV3";
@@ -42,18 +42,18 @@ export const main = async () => {
     //loggerTest();
     let testVal = process.env.TEST_KEY;
     let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
-    let msg = `index.main: v0.12; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v0.13; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
     clog.debug(msg);
     flog.debug(msg);
 
     PCKFLBConfig.init();
     PCKFLBConfig.logConfigs();
 
-    gasPriceCalculator.init();
-    gasPriceCalculator.logConfigs();
-
     PCKWeb3Handler.init();
     PCKPriceV3.init();    
+
+    gasPriceCalculator.init();
+    gasPriceCalculator.logConfigs();
 
     let routersListStr = process.env.ROUTERS_LIST ? process.env.ROUTERS_LIST : "";
     let routersList = parseRouterLists(routersListStr);
@@ -77,11 +77,11 @@ export const main = async () => {
         let isOpp = diffAmt > PCKFLBConfig.flashloanExecutionThresholdUSDx;
         flog.debug(`index.main.func: ${getSwapsStrings(aSwapRoutes)};isOpp:${isOpp}; diffAmt:${diffAmt}, diffPct:${diffPct};`);
         if (isOpp) {
-          flog.debug(`index.main.func: gasPrice:${await gasPriceCalculator.getGasPrice()}`);
+          //flog.debug(`index.main.func: gasPrice:${await gasPriceCalculator.getGasPrice()}`);
           if (PCKFLBConfig.remainingFlashloanTries > 0) {
             let results = await PCKFlashloanExecutor.executeFlashloan(aSwapRoutes);
             PCKFLBConfig.remainingFlashloanTries--;
-            flog.debug(`index.main.func: flashloan executed, results=${results};`);
+            flog.debug(`index.main.func: flashloan executed, results=${results}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
           } else {
             flog.debug(`index.main.func: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
           }

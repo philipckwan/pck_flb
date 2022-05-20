@@ -7,7 +7,7 @@ import {getBigNumber} from "../utility";
 import {PCKWeb3Handler} from "../utils/Web3Handler";
 import {PCKFLBConfig} from "../config";
 import {PCKPriceV3} from "../uniswap/priceV3"
-import {gasPriceCalculator} from "../utils/gasPriceCalculator";
+import {gasPriceCalculator} from "../utils/GasPriceCalculator";
 
 const flog = log4js.getLogger("file");
 const clog = log4js.getLogger("console");
@@ -36,11 +36,11 @@ class FlashloanExecutor {
     }
 
     public async executeFlashloan(swapRoutes : ISwapRoutes) : Promise<string> {
-        clog.debug(`FlEx.executeFlashloan: 1.0;`);
+        //clog.debug(`FlEx.executeFlashloan: 1.0;`);
         let tokenIn = swapRoutes.swapPairRoutes[0].fromToken;
         let flashloanPool = this.getLendingPool(tokenIn);
         let bnLoanAmount = getBigNumber(PCKFLBConfig.loanAmountUSDx, tokenIn.decimals);
-        clog.debug(`FlEx: flashloanPool:${flashloanPool}; bnLoanAmount:${bnLoanAmount};`);
+        //clog.debug(`FlEx: flashloanPool:${flashloanPool}; bnLoanAmount:${bnLoanAmount};`);
 
         // currently assume swapRoutes only has 2 routes with 1 hop in each
         if (swapRoutes.idxBestRouterToAmountList.length != 2) {
@@ -70,12 +70,12 @@ class FlashloanExecutor {
 
         let aFirstRoutes = this.toRoute(firstRouteProtocol, firstFromToken, firstToToken);
         let msg = `FlEx.executeFlashloan: aFirstRoutes:${JSON.stringify(aFirstRoutes)};`;
-        clog.debug(msg);
-        flog.debug(msg);
+        //clog.debug(msg);
+        //flog.debug(msg);
         let aSecondRoutes = this.toRoute(secondRouteProtocol, secondFromToken, secondToToken);
         msg = `FlEx.executeFlashloan: aSecondRoutes:${JSON.stringify(aSecondRoutes)};`;
-        clog.debug(msg);
-        flog.debug(msg);
+        //clog.debug(msg);
+        //flog.debug(msg);
         params.firstRoutes = aFirstRoutes;
         params.secondRoutes = aSecondRoutes;
 
