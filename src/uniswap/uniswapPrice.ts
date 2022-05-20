@@ -1,7 +1,7 @@
 import {getSwapsStrings, getBigNumber, formatDate} from "../utility";
 import {IToken, IRouter, IToAmountAndRate, ISwapRoutes} from "../interfaces";
 import * as log4js from "log4js";
-import {getFeeOnUniV3, getPriceOnUniV3} from "./priceV3";
+import {PCKPriceV3} from "./priceV3";
 import {getPriceOnUniV2} from "./priceV2";
 import {BigNumber, ethers} from "ethers";
 
@@ -18,9 +18,9 @@ export const getSwapAmountAndRate = async (fromToken : IToken, toToken : IToken,
     try {
         if (router.name == "POLYGON_UNISWAP_V3") {
             //clog.debug(`utility.getSwapPrice: calling getFeeOnUniV3;`);
-            let fee = getFeeOnUniV3(fromToken.symbol, toToken.symbol);
+            let fee = PCKPriceV3.getFeeOnUniV3(fromToken.symbol, toToken.symbol);
             //clog.debug(`_fee:${fee};`);
-            resultToAmountAndRate.toAmount = await getPriceOnUniV3(fromToken.address, toToken.address, fromAmount, fee);
+            resultToAmountAndRate.toAmount = await PCKPriceV3.getPriceOnUniV3(fromToken.address, toToken.address, fromAmount, fee);
         } else {
             //clog.debug(`utility.getSwapPrice: calling getPriceOnUniV2;`);
             resultToAmountAndRate.toAmount = await getPriceOnUniV2(fromToken.address, toToken.address, fromAmount, router.address);

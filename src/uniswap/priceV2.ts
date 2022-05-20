@@ -1,6 +1,7 @@
-import {getBigNumber, web3Provider} from "../utility"
+import {getBigNumber} from "../utility"
 import { BigNumber, ethers } from "ethers";
 import * as UniswapV2Router from "../abis/IUniswapV2Router02.json";
+import {PCKWeb3Handler} from "../utils/Web3Handler";
 
 import * as log4js from "log4js";
 const flog = log4js.getLogger("file");
@@ -16,7 +17,7 @@ export const getPriceOnUniV2 = async (
     let v2Router = new ethers.Contract(
         routerAddress,
         UniswapV2Router.abi,
-        web3Provider
+        PCKWeb3Handler.web3Provider
     );
     const amountsOut = await v2Router.getAmountsOut(amountIn, [
       tokenIn,

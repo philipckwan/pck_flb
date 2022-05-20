@@ -1,11 +1,15 @@
-20220515
 FIXED-get price from uniswap v3 has error
 DONE-loop the swap fetching to identify opportunity to flashloan
 DONE-enable the multi-logs and .env configurations
 DONE-identify opportunity
--after identify opportunity, call flashloan
+DONE(20/5)-after identify opportunity, call flashloan
 DONE-make the time interval to be configurable
 DONE(18/5)-get gas price when pflb isOpp:true
 -add a new log to track if flashloan is executed
+-add to current log the route (swap name) when isOpp:true
 -add grouping line to stats.log so that easier to tell within the same check
 -simplify the log pattern to reduce information such as year, logger name, etc...
+DONE(20/5)-add a config parameter for flashloan threshold, i.e. if amount is > $10, then execute flashloan
+DONE(20/5)-time the polyscan get gasPrice API call
+-consider to add ethers get gasPrice and compare the time with polyscan API
+-or, detach the API get gasPrice call to be run in parallel and save to a cache

@@ -10,6 +10,7 @@ export interface IToken {
 export interface IRouter {
     name: string;
     address: string;
+    protocol: number;
 }
 
 export interface IRouterToAmount {
@@ -32,4 +33,27 @@ export interface ISwapRoutes {
 export interface IToAmountAndRate {
   toAmount:BigNumber;
   toFromRate:number;
+}
+
+export interface ISwap {
+  protocol: number;
+  part: number;
+  data: string;
+}
+
+export interface IHop {
+  swaps: ISwap[];
+  path: string[];
+}
+
+export interface IFlashloanRoute {
+  hops: IHop[];
+  part: number;
+}
+
+export interface IParams {
+  flashLoanPool: string;
+  loanAmount: BigNumber;
+  firstRoutes: IFlashloanRoute[];
+  secondRoutes: IFlashloanRoute[];
 }

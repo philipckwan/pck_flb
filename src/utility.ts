@@ -1,16 +1,12 @@
 import * as log4js from "log4js";
 //import {erc20Token, ERC20_TOKEN, routerAddress, SWAP_ROUTER} from "./addresses";
 
-import {ethers, BigNumber} from "ethers";
+import {ethers} from "ethers";
 import {IRouter, ISwapRoutes, ISwapPairRoutes} from "./interfaces";
 import {ERC20_TOKEN, SWAP_ROUTER} from "./addresses";
 
 const flog = log4js.getLogger("file");
 const clog = log4js.getLogger("console");
-
-export const web3Provider = new ethers.providers.JsonRpcProvider(
-    process.env.WEB3_RPC_URL
-);
   
 export const getBigNumber = (amount: number, decimals = 18) => {
     return ethers.utils.parseUnits(amount.toString(), decimals);

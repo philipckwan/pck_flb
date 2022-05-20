@@ -23,6 +23,12 @@ class Config
     public remainingFlashloanTries:number;
     public isInited:boolean = false;
     public polygonAPIKey:string;
+    public loanAmountUSDx:number;
+    public flashloanExecutionThresholdUSDx:number;
+    public privateKey:string;
+    public web3RPCURL:string;
+    public flashloanContractAddress:string;
+
 
     public init() {
         if (this.isInited) {
@@ -57,12 +63,31 @@ class Config
         this.gasPriceLimit = process.env.GAS_PRICE_LIMIT ? parseInt(process.env.GAS_PRICE_LIMIT) : 300;
         this.remainingFlashloanTries = process.env.MAX_NUM_SUCCESSFUL_FLASHLOAN ? parseInt(process.env.MAX_NUM_SUCCESSFUL_FLASHLOAN) : 0;
         this.polygonAPIKey = process.env.POLYGON_API_KEY ? process.env.POLYGON_API_KEY : "abcdefgh";
-        this.isInited = true;
         
+        this.loanAmountUSDx = process.env.LOAN_AMOUNT_USDX ? parseInt(process.env.LOAN_AMOUNT_USDX) : 0;
+        this.flashloanExecutionThresholdUSDx = process.env.FLASHLOAN_EXECUTE_THRESHOLD_USDX ? parseInt(process.env.FLASHLOAN_EXECUTE_THRESHOLD_USDX) : 10;
+
+        this.web3RPCURL = process.env.WEB3_RPC_URL ? process.env.WEB3_RPC_URL : "";
+        this.privateKey = process.env.PRIVATE_KEY ? process.env.PRIVATE_KEY : "";
+        this.flashloanContractAddress = process.env.FLASHLOAN_CONTRACT_ADDRESS ? process.env.FLASHLOAN_CONTRACT_ADDRESS : "";
+
+        let msg = `Config.init: DONE;`;
+        clog.info(msg);
+        flog.info(msg);
+        
+        this.isInited = true;
     }
 
     public logConfigs () {
-        let msg = `Config.logConfigs: v0.1; gasLimit:${this.gasLimit}; isAPIGetGasPrice:${this.isAPIGetGasPrice}; gasPriceMultiplier:${this.gasPriceMultiplier}; gasPriceAdder:${this.gasPriceAdder}; gasPriceLimit:${this.gasPriceLimit}; remainingFlashloanTries:${this.remainingFlashloanTries}; polygonAPIKey:${this.polygonAPIKey}`;
+        let msg=`Config.logConfigs: v0.3; gasLimit:${this.gasLimit}; isAPIGetGasPrice:${this.isAPIGetGasPrice}; gasPriceMultiplier:${this.gasPriceMultiplier}; gasPriceAdder:${this.gasPriceAdder}; gasPriceLimit:${this.gasPriceLimit};`; 
+        clog.debug(msg);
+        flog.debug(msg);
+
+        msg=`Config.logConfigs: remainingFlashloanTries:${this.remainingFlashloanTries}; polygonAPIKey:${this.polygonAPIKey}; loanAmountUSDx:${this.loanAmountUSDx}; flashloanExecutionThresholdUSDx:${this.flashloanExecutionThresholdUSDx};`;
+        clog.debug(msg);
+        flog.debug(msg);
+
+        msg=`Config.logConfigs: web3RPCURL:${this.web3RPCURL}; privateKey(partial):${this.privateKey.substring(0,6)}...; flashloanContractAddress:${this.flashloanContractAddress};`;
         clog.debug(msg);
         flog.debug(msg);
     }

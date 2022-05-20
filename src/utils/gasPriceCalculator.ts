@@ -26,6 +26,9 @@ class GasPriceCalculator {
             flog.warn(msg);
         }
         this.polygonAPIUrl = `https://api.polygonscan.com/api?module=gastracker&action=gasoracle&apikey=${PCKFLBConfig.polygonAPIKey}`;
+        let msg = `GasPriceCalculator.init: DONE;`;
+        clog.info(msg);
+        flog.info(msg);
         this.isInited = true;
     }
 
@@ -35,7 +38,11 @@ class GasPriceCalculator {
         if (PCKFLBConfig.isAPIGetGasPrice == false) {
             return PCKFLBConfig.gasPriceAdder;
         }
+        let startTime = Date.now();
         let gasPriceFromPolyscan = await this.getGasPriceFromPolyscan();
+        let endTime = Date.now();
+        let timeDiff = (endTime - startTime) / 1000;
+        flog.debug(`GasPriceCalculator.getGasPrice: time for this.getGasPriceFromPolyscan():${timeDiff};`)
         gasPrice = (PCKFLBConfig.gasPriceMultiplier * gasPriceFromPolyscan) + PCKFLBConfig.gasPriceAdder;
     
     
@@ -43,12 +50,12 @@ class GasPriceCalculator {
     }
     
     private async getGasPriceFromPolyscan(): Promise<number> {
-        clog.debug(`GasPriceCalculator.getGasPriceFromPolyscan: 1.0;`);
+        flog.debug(`GasPriceCalculator.getGasPriceFromPolyscan: 1.0;`);
         let gasPrice = 0;
         
         const resultData = await sendRequest(this.polygonAPIUrl);
         gasPrice = resultData.data.result.FastGasPrice;
-        clog.debug(`GasPriceCalculator.getGasPriceFromPolyscan: gasPrice:${gasPrice};`);
+        flog.debug(`GasPriceCalculator.getGasPriceFromPolyscan: gasPrice:${gasPrice};`);
         //const safeGasPrice = resultData1.data.protocols;
         return gasPrice;
     }

@@ -58,32 +58,59 @@ type routerAddress = { [protocol: string]: IRouter };
 export const SWAP_ROUTER: routerAddress = {
     POLYGON_UNISWAP_V3: {
         name: "POLYGON_UNISWAP_V3",
-        address: "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+        address: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+        protocol: 0
     },
     POLYGON_SUSHISWAP: {
         name: "POLYGON_SUSHISWAP",
         address: "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
+        protocol: 1
     },
     POLYGON_QUICKSWAP: {
         name: "POLYGON_QUICKSWAP",
         address: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
+        protocol: 2
     },
     POLYGON_APESWAP: {
         name: "POLYGON_APESWAP",
         address: "0xC0788A3aD43d79aa53B09c2EaCc313A787d1d607",
+        protocol: 3
     },
     POLYGON_JETSWAP: {
         name: "POLYGON_JETSWAP",
         address: "0x5C6EC38fb0e2609672BDf628B1fD605A523E5923",
+        protocol: 4
     },
     POLYGON_POLYCAT: {
         name: "POLYGON_POLYCAT",
         address: "0x94930a328162957FF1dd48900aF67B5439336cBD",
+        protocol: 5
     },
     POLYGON_WAULTSWAP: {
         name: "POLYGON_WAULTSWAP",
         address: "0x3a1D87f206D12415f5b0A33E786967680AAb4f6d",
+        protocol: 6
     }
 };
 
+type protocolToRouterMap = { [protocol:number]:string };
+
+export const PROTOCOL_ROUTER: protocolToRouterMap = {
+  0 : "POLYGON_UNISWAP_V3",
+  1 : "POLYGON_SUSHISWAP",
+  2 : "POLYGON_QUICKSWAP",
+  3 : "POLYGON_APESWAP",
+  4 : "POLYGON_JETSWAP",
+  5 : "POLYGON_POLYCAT",
+  6 : "POLYGON_WAULTSWAP"
+}
+
 export const quoterAddressUniswapV3 = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
+
+type PoolMap = { [pair: string]: string };
+
+export const dodoV2Pool: PoolMap = {
+  WETH_USDC: "0x5333Eb1E32522F1893B7C9feA3c263807A02d561",
+  WMATIC_USDC: "0x10Dd6d8A29D489BEDE472CC1b22dc695c144c5c7",
+  USDT_USDC: "0xA0020444b98f67B77a3d6dE6E66aF11c87da086e",
+};
