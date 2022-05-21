@@ -21,8 +21,8 @@ const init = () => {
 
   log4js.configure({
     appenders: {
-      file: { type:"file", filename:fileLoggerFilepath},
-      statsFile: { type:"file", filename:statsFileLoggerFilepath, layout:{type: 'pattern', pattern: '%m'}},
+      file: { type:"file", filename:fileLoggerFilepath, layout:{type:"pattern", pattern:"%d{MM/ddThh:mm:ss:SSS};%p;%m"}},
+      statsFile: { type:"file", filename:statsFileLoggerFilepath, layout:{type:"pattern", pattern:"%m"}},
       console: { type:"console"}
     },
     categories: {
@@ -42,7 +42,7 @@ export const main = async () => {
     //loggerTest();
     let testVal = process.env.TEST_KEY;
     let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
-    let msg = `index.main: v0.13; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v0.14; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
     clog.debug(msg);
     flog.debug(msg);
 
@@ -61,6 +61,8 @@ export const main = async () => {
     let swapRouteListStr = process.env.SWAP_ROUTE_LIST ? process.env.SWAP_ROUTE_LIST : "";
     let swapRoutesList = parseSwapLists(swapRouteListStr, routersList, PCKFLBConfig.loanAmountUSDx);
 
+    let isFlashloanInProgress=false;
+
     /*
     if (true) {
       log4js.shutdown(function() { process.exit(1); });
@@ -76,6 +78,10 @@ export const main = async () => {
         let [diffAmt, diffPct] = compareSwap(aSwapRoutes);
         let isOpp = diffAmt > PCKFLBConfig.flashloanExecutionThresholdUSDx;
         flog.debug(`index.main.func: ${getSwapsStrings(aSwapRoutes)};isOpp:${isOpp}; diffAmt:${diffAmt}, diffPct:${diffPct};`);
+        if (isFlashloanInProgress) {
+          flog.debug(`index.main.func: a flashloan execution is in progress, will skip this flashloan...`);
+          return;
+        }
         if (isOpp) {
           //flog.debug(`index.main.func: gasPrice:${await gasPriceCalculator.getGasPrice()}`);
           if (PCKFLBConfig.remainingFlashloanTries > 0) {
