@@ -28,6 +28,8 @@ class Config
     public privateKey:string;
     public web3RPCURL:string;
     public flashloanContractAddress:string;
+    public getGasPriceField:string;
+    public isUseRecentGasPrice:boolean;
 
 
     public init() {
@@ -70,6 +72,9 @@ class Config
         this.web3RPCURL = process.env.WEB3_RPC_URL ? process.env.WEB3_RPC_URL : "";
         this.privateKey = process.env.PRIVATE_KEY ? process.env.PRIVATE_KEY : "";
         this.flashloanContractAddress = process.env.FLASHLOAN_CONTRACT_ADDRESS ? process.env.FLASHLOAN_CONTRACT_ADDRESS : "";
+
+        this.getGasPriceField = process.env.GET_GAS_PRICE_FIELD ? process.env.GET_GAS_PRICE_FIELD : "";
+        this.isUseRecentGasPrice = process.env.IS_USE_RECENT_GAS_PRICE ? process.env.IS_USE_RECENT_GAS_PRICE  === "true": false;
 
         let msg = `Config.init: DONE;`;
         clog.info(msg);

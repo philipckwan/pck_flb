@@ -47,7 +47,13 @@ class GasPriceCalculator {
         this.gasPriceRecentPolygonFast = 30;
         this.gasPriceRecentEthers = 15;
 
-        let msg = `GasPriceCalculator.init: DONE;`;
+        this.gasPriceMode = (PCKFLBConfig.getGasPriceField === GAS_PRICE_MODE[GAS_PRICE_MODE.POLY_SAFE]) ? GAS_PRICE_MODE.POLY_SAFE :
+                            (PCKFLBConfig.getGasPriceField === GAS_PRICE_MODE[GAS_PRICE_MODE.POLY_PROPOSE]) ? GAS_PRICE_MODE.POLY_PROPOSE :
+                            (PCKFLBConfig.getGasPriceField === GAS_PRICE_MODE[GAS_PRICE_MODE.POLY_FAST]) ? GAS_PRICE_MODE.POLY_FAST :
+                            GAS_PRICE_MODE.ETHERS;          
+        this.useRecentGasPrice = PCKFLBConfig.isUseRecentGasPrice;                                      
+
+        let msg = `GasPriceCalculator.init: DONE; gasPriceMode:${GAS_PRICE_MODE[this.gasPriceMode]}; useRecentGasPrice:${this.useRecentGasPrice};`;
         clog.info(msg);
         flog.info(msg);
         if (this.useRecentGasPrice) {
@@ -100,12 +106,18 @@ class GasPriceCalculator {
     }
 
     private async getGasPriceDispatch(updateGasPriceRecent = false): Promise<number> {
-        flog.debug(`GasPriceCalculator.getGasPriceDispatch: 1.0;`);
-        if (this.gasPriceMode == GAS_PRICE_MODE.ETHERS) {
-            return this.getGasPriceFromEthers(updateGasPriceRecent);
+        flog.debug(`GasPriceCalculator.getGasPriceDispatch: 1.1; updateGasPriceRecent:${updateGasPriceRecent};`);
+        if (updateGasPriceRecent) {
+            this.getGasPriceFromEthers(updateGasPriceRecent);
+            this.getGasPriceFromPolyscan(updateGasPriceRecent);
+            return 0;
         } else {
-            return this.getGasPriceFromPolyscan(updateGasPriceRecent);
-        }
+            if (this.gasPriceMode == GAS_PRICE_MODE.ETHERS) {
+                return this.getGasPriceFromEthers(updateGasPriceRecent);
+            } else {
+                return this.getGasPriceFromPolyscan(updateGasPriceRecent);
+            }
+        }   
     }
     
     private async getGasPriceFromPolyscan(updateGasPriceRecent = false): Promise<number> {
@@ -168,8 +180,8 @@ class GasPriceCalculator {
         return gasPrice;
     }
 
-    public doAPollGasPrice() {
-        this.getGasPriceDispatch(true);
+    public async doAPollGasPrice() {
+        await this.getGasPriceDispatch(true);
         flog.debug(`GasPriceCalculator.doAPollGasPrice: safe:${this.gasPriceRecentPolygonSafe}; propose:${this.gasPriceRecentPolygonPropose}; fast:${this.gasPriceRecentPolygonFast}: ethers:${this.gasPriceRecentEthers};`);
     }
 
