@@ -124,59 +124,61 @@ class GasPriceCalculator {
         //flog.debug(`GasPriceCalculator.getGasPriceFromPolyscan: 1.0;`);
         let gasPrice = 0;
         
-        let startTime = Date.now();
-        const resultData = await sendRequest(this.polygonAPIUrl);
-        let endTime = Date.now();
-        let timeDiff = (endTime - startTime) / 1000;
-        if (updateGasPriceRecent) {
-            this.gasPriceRecentPolygonSafe = resultData.data.result.SafeGasPrice;
-            this.gasPriceRecentPolygonPropose = resultData.data.result.ProposeGasPrice;
-            this.gasPriceRecentPolygonFast = resultData.data.result.FastGasPrice;
-            gasPrice = 0;
-        } else {
-            switch (this.gasPriceMode) {
-                case GAS_PRICE_MODE.POLY_SAFE: {
-                    gasPrice = resultData.data.result.SafeGasPrice;
-                    break;
-                }
-                case GAS_PRICE_MODE.POLY_PROPOSE: {
-                    gasPrice = resultData.data.result.ProposeGasPrice;
-                    break;
-                }
-                case GAS_PRICE_MODE.POLY_FAST: {
-                    gasPrice = resultData.data.result.FastGasPrice;
-                    break;
-                }
-                default: {
-                    gasPrice = resultData.data.result.ProposeGasPrice;
+        try {
+            let startTime = Date.now();
+            const resultData = await sendRequest(this.polygonAPIUrl);
+            let endTime = Date.now();
+            let timeDiff = (endTime - startTime) / 1000;
+            if (updateGasPriceRecent) {
+                this.gasPriceRecentPolygonSafe = resultData.data.result.SafeGasPrice;
+                this.gasPriceRecentPolygonPropose = resultData.data.result.ProposeGasPrice;
+                this.gasPriceRecentPolygonFast = resultData.data.result.FastGasPrice;
+                gasPrice = 0;
+            } else {
+                switch (this.gasPriceMode) {
+                    case GAS_PRICE_MODE.POLY_SAFE: {
+                        gasPrice = resultData.data.result.SafeGasPrice;
+                        break;
+                    }
+                    case GAS_PRICE_MODE.POLY_PROPOSE: {
+                        gasPrice = resultData.data.result.ProposeGasPrice;
+                        break;
+                    }
+                    case GAS_PRICE_MODE.POLY_FAST: {
+                        gasPrice = resultData.data.result.FastGasPrice;
+                        break;
+                    }
+                    default: {
+                        gasPrice = resultData.data.result.ProposeGasPrice;
+                    }
                 }
             }
+            flog.debug(`GasPriceCalculator.getGasPriceFromPolyscan: time:${timeDiff};`);
+        } catch (ex) {
+            flog.error(`GasPriceCalculator.getGasPriceFromPolyscan: ERROR;`);
+            flog.error(ex);
         }
-        flog.debug(`GasPriceCalculator.getGasPriceFromPolyscan: time:${timeDiff};`);
         return gasPrice;
-        /*
-        flog.debug(`getGasPriceFromPolyscan`);
-        
 
-        gasPrice = resultData.data.result.FastGasPrice;
-        let bnGasPrice = ethers.utils.parseUnits(gasPrice.toString(), "gwei");
-        flog.debug(`GasPriceCalculator.getGasPriceFromPolyscan: gasPrice:${gasPrice}; bnGasPrice:${bnGasPrice}; time:${timeDiff};`);
-        //const safeGasPrice = resultData1.data.protocols;
-        return gasPrice;
-        */
     }
 
     private async getGasPriceFromEthers(updateGasPriceRecent = false): Promise<number> {
         let gasPrice = 0;
-        let startTime = Date.now();
-        const bnGasPrice = await PCKWeb3Handler.web3Provider.getGasPrice();
-        let endTime = Date.now();
-        let timeDiff = (endTime - startTime) / 1000;
-        gasPrice = parseFloat(ethers.utils.formatUnits(bnGasPrice, "gwei"));
-        if (updateGasPriceRecent) {
-            this.gasPriceRecentEthers = gasPrice;
+
+        try {
+            let startTime = Date.now();
+            const bnGasPrice = await PCKWeb3Handler.web3Provider.getGasPrice();
+            let endTime = Date.now();
+            let timeDiff = (endTime - startTime) / 1000;
+            gasPrice = parseFloat(ethers.utils.formatUnits(bnGasPrice, "gwei"));
+            if (updateGasPriceRecent) {
+                this.gasPriceRecentEthers = gasPrice;
+            }
+            flog.debug(`GasPriceCalculator.getGasPriceFromEthers: time:${timeDiff};`);
+        } catch (ex) {
+            flog.error(`GasPriceCalculator.getGasPriceFromEthers: ERROR;`);
+            flog.error(ex);
         }
-        flog.debug(`GasPriceCalculator.getGasPriceFromEthers: time:${timeDiff};`);
         return gasPrice;
     }
 
