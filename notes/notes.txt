@@ -17,3 +17,4 @@ DONE(21/5,v0.14)-HIGH-multiple concurrent flashloan execution issue, need to add
 DONE(22/5,v1.0)-make GET_GAS_PRICE_FIELD and IS_USE_RECENT_GAS_PRICE configurable
 DONE(23/5,v1.1)-add timing for isOpp check
 DONE(24/5,v1.2)-catch error when get gas price failed
+DONE(24/5,v1.3)-concurrent flashloan execution issue seems not fixed, need to revisit

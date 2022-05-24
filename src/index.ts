@@ -42,7 +42,7 @@ export const main = async () => {
     //loggerTest();
     let testVal = process.env.TEST_KEY;
     let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
-    let msg = `index.main: v1.2; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v1.3; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
     clog.debug(msg);
     flog.debug(msg);
 
@@ -86,7 +86,7 @@ export const main = async () => {
           return;
         }
         if (isOpp) {
-          //flog.debug(`index.main.func: gasPrice:${await gasPriceCalculator.getGasPrice()}`);
+          isFlashloanInProgress=true;
           if (PCKFLBConfig.remainingFlashloanTries > 0) {
             let results = await PCKFlashloanExecutor.executeFlashloan(aSwapRoutes);
             PCKFLBConfig.remainingFlashloanTries--;
@@ -94,7 +94,7 @@ export const main = async () => {
           } else {
             flog.debug(`index.main.func: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
           }
-
+          isFlashloanInProgress=false;
         }
       }
       //func();  
