@@ -69,11 +69,11 @@ class FlashloanExecutor {
         }
 
         let aFirstRoutes = this.toRoute(firstRouteProtocol, firstFromToken, firstToToken);
-        let msg = `FlEx.executeFlashloan: aFirstRoutes:${JSON.stringify(aFirstRoutes)};`;
+        //let msg = `FlEx.executeFlashloan: aFirstRoutes:${JSON.stringify(aFirstRoutes)};`;
         //clog.debug(msg);
         //flog.debug(msg);
         let aSecondRoutes = this.toRoute(secondRouteProtocol, secondFromToken, secondToToken);
-        msg = `FlEx.executeFlashloan: aSecondRoutes:${JSON.stringify(aSecondRoutes)};`;
+        //msg = `FlEx.executeFlashloan: aSecondRoutes:${JSON.stringify(aSecondRoutes)};`;
         //clog.debug(msg);
         //flog.debug(msg);
         params.firstRoutes = aFirstRoutes;

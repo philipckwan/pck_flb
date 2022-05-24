@@ -2,7 +2,7 @@ import { config as dotEnvConfig } from "dotenv";
 let argEnv = process.argv[2] ? process.argv[2] : "";
 dotEnvConfig({path:`${argEnv}.env`});
 import * as log4js from "log4js";
-import {getBigNumber, parseRouterLists, parseSwapLists, printSwapRoutes, compareSwap, getSwapsStrings} from "./utility";
+import {getBigNumber, parseRouterLists, parseSwapLists, printSwapRoutes, compareSwap, getSwapsStrings, formatTime} from "./utility";
 import {fetchSwapPrices} from "./uniswap/uniswapPrice";
 import {PCKFLBConfig} from "./config";
 import {gasPriceCalculator} from "./utils/GasPriceCalculator";
@@ -42,7 +42,7 @@ export const main = async () => {
     //loggerTest();
     let testVal = process.env.TEST_KEY;
     let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
-    let msg = `index.main: v1.0; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v1.1; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
     clog.debug(msg);
     flog.debug(msg);
 
@@ -74,10 +74,13 @@ export const main = async () => {
       let bnLoanAmountUSDx = getBigNumber(PCKFLBConfig.loanAmountUSDx, aSwapRoutes.swapPairRoutes[0].fromToken.decimals);
       const func = async () => {
         //clog.debug(`index.main.func: START; ${getSwapsStrings(aSwapRoutes)};`);
+        let startTime = Date.now();
         await fetchSwapPrices(aSwapRoutes, bnLoanAmountUSDx);
+        let endTime = Date.now();
+        let timeDiff = (endTime - startTime) / 1000;
         let [diffAmt, diffPct] = compareSwap(aSwapRoutes);
         let isOpp = diffAmt > PCKFLBConfig.flashloanExecutionThresholdUSDx;
-        flog.debug(`index.main.func: ${getSwapsStrings(aSwapRoutes)};isOpp:${isOpp}; diffAmt:${diffAmt}, diffPct:${diffPct};`);
+        flog.debug(`index.main.func: ${getSwapsStrings(aSwapRoutes)};isOpp:${isOpp}; diffAmt:${diffAmt}, diffPct:${diffPct};T:[${formatTime(startTime)}->${formatTime(endTime)}(${timeDiff})];`);
         if (isFlashloanInProgress) {
           flog.debug(`index.main.func: a flashloan execution is in progress, will skip this flashloan...`);
           return;

@@ -15,3 +15,4 @@ DONE(20/5 v0.13)-consider to add ethers get gasPrice and compare the time with p
 DONE(20/5 v0.13)-or, detach the API get gasPrice call to be run in parallel and save to a cache
 DONE(21/5,v0.14)-HIGH-multiple concurrent flashloan execution issue, need to add a lock to prevent that
 DONE(22/5,v1.0)-make GET_GAS_PRICE_FIELD and IS_USE_RECENT_GAS_PRICE configurable
+DONE(23/5,v1.1)-add timing for isOpp check

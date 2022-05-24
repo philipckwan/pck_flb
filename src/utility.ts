@@ -23,6 +23,14 @@ export const formatDate = (d: number) => {
     return `${date.toString().padStart(2,"0")}/${month.toString().padStart(2,"0")}@${hour.toString().padStart(2,"0")}:${minute.toString().padStart(2,"0")}:${second.toString().padStart(2,"0")}:${mSec.toString().padStart(3,"0")}`;
 };
 
+export const formatTime = (d: number) => {
+  let aDate = new Date(d);
+  let minute = aDate.getMinutes();
+  let second = aDate.getSeconds();
+  let mSec = aDate.getMilliseconds();
+  return `${minute.toString().padStart(2,"0")}:${second.toString().padStart(2,"0")}:${mSec.toString().padStart(3,"0")}`;
+}
+
 export const parseRouterLists = (routersListStr:string) : IRouter[] => {
     let routers:IRouter[] = [];
     let routersListStrSplit = routersListStr.split(",");
