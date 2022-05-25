@@ -58,8 +58,9 @@ export const parseSwapLists = (swapRoutesListStr:string, routers:IRouter[], loan
             routerToAmountList : []
           };
   
-          for (let aRouter of routers) {
-            aSwapPairRoutes.routerToAmountList.push({router:aRouter, toAmount:getBigNumber(0), toFromRate:0});
+          for (let i = 0; i < routers.length; i++) { //let aRouter of routers) {
+            let aRouter = routers[i];
+            aSwapPairRoutes.routerToAmountList.push({idx:i, router:aRouter, toAmount:getBigNumber(0), toFromRate:0});
           }
           // initialize the first pair's loan amount to loanAmountUSDx
           if (i == 0){

@@ -6,7 +6,6 @@ DONE(20/5)-after identify opportunity, call flashloan
 DONE-make the time interval to be configurable
 DONE(18/5)-get gas price when pflb isOpp:true
 -add a new log to track if flashloan is executed
--add to current log the route (swap name) when isOpp:true
 -add grouping line to stats.log so that easier to tell within the same check
 DONE(21/5,v0.14)-simplify the log pattern to reduce information such as year, logger name, etc...
 DONE(20/5)-add a config parameter for flashloan threshold, i.e. if amount is > $10, then execute flashloan
@@ -18,3 +17,5 @@ DONE(22/5,v1.0)-make GET_GAS_PRICE_FIELD and IS_USE_RECENT_GAS_PRICE configurabl
 DONE(23/5,v1.1)-add timing for isOpp check
 DONE(24/5,v1.2)-catch error when get gas price failed
 DONE(24/5,v1.3)-concurrent flashloan execution issue seems not fixed, need to revisit
+DONE(25/5,v1.5)-add to current log the route (swap name) when isOpp:true
+DONE(25/5,v1.5)-see if can de-couple the first and second route API call to improve performance

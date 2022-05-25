@@ -35,7 +35,11 @@ class FlashloanExecutor {
         return testedPools[borrowingToken.symbol][0];
     }
 
-    public async executeFlashloan(swapRoutes : ISwapRoutes) : Promise<string> {
+    public async executeFlashloan(swapRoutes:ISwapRoutes):Promise<string> {
+        return this.executeFlashloanWithIdxs(swapRoutes, swapRoutes.idxBestRouterToAmountList[0], swapRoutes.idxBestRouterToAmountList[1]);
+    }
+
+    public async executeFlashloanWithIdxs(swapRoutes:ISwapRoutes, firstRouteIdx:number, secondRouteIdx:number) : Promise<string> {
         //clog.debug(`FlEx.executeFlashloan: 1.0;`);
         let tokenIn = swapRoutes.swapPairRoutes[0].fromToken;
         let flashloanPool = this.getLendingPool(tokenIn);
@@ -52,13 +56,13 @@ class FlashloanExecutor {
         let firstSwapPairRoutes = swapRoutes.swapPairRoutes[0];
         let firstFromToken = firstSwapPairRoutes.fromToken;
         let firstToToken = firstSwapPairRoutes.toToken;
-        let firstRoute = firstSwapPairRoutes.routerToAmountList[swapRoutes.idxBestRouterToAmountList[0]];
+        let firstRoute = firstSwapPairRoutes.routerToAmountList[firstRouteIdx];
         let firstRouteProtocol = firstRoute.router.protocol;
 
         let secondSwapPairRoutes = swapRoutes.swapPairRoutes[1];
         let secondFromToken = secondSwapPairRoutes.fromToken;
         let secondToToken = secondSwapPairRoutes.toToken;
-        let secondRoute = secondSwapPairRoutes.routerToAmountList[swapRoutes.idxBestRouterToAmountList[1]];
+        let secondRoute = secondSwapPairRoutes.routerToAmountList[secondRouteIdx];
         let secondRouteProtocol = secondRoute.router.protocol;
         
         let params:IParams = {

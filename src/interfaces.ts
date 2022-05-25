@@ -1,28 +1,36 @@
 import { BigNumber } from "ethers";
 
 export interface IToken {
-    symbol: string;
-    name: string;
-    decimals: number;
-    address: string;
+  symbol: string;
+  name: string;
+  decimals: number;
+  address: string;
   }
 
 export interface IRouter {
-    name: string;
-    address: string;
-    protocol: number;
+  name: string;
+  address: string;
+  protocol: number;
 }
 
 export interface IRouterToAmount {
-    router: IRouter;
-    toAmount: BigNumber;
-    toFromRate: number;
+  idx:number;
+  router: IRouter;
+  toAmount: BigNumber;
+  toFromRate: number;
+}
+
+export interface ITwoSwaps {
+  fromSwap:ISwapPairRoutes;
+  toSwap:ISwapPairRoutes;
+  fromWinnerIdx:number;
+  toWinnerIdx:number;
 }
 export interface ISwapPairRoutes {
-    fromToken: IToken;
-    fromAmount: BigNumber;
-    toToken: IToken;
-    routerToAmountList: IRouterToAmount[];
+  fromToken: IToken;
+  fromAmount: BigNumber;
+  toToken: IToken;
+  routerToAmountList: IRouterToAmount[];
 }
 
 export interface ISwapRoutes {

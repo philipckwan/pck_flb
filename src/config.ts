@@ -30,6 +30,8 @@ class Config
     public flashloanContractAddress:string;
     public getGasPriceField:string;
     public isUseRecentGasPrice:boolean;
+    //public isDecoupleFirstAndSecondRoutes:boolean;
+    public isParallelTwoSwapsStrategy:boolean;
 
 
     public init() {
@@ -75,6 +77,7 @@ class Config
 
         this.getGasPriceField = process.env.GET_GAS_PRICE_FIELD ? process.env.GET_GAS_PRICE_FIELD : "";
         this.isUseRecentGasPrice = process.env.IS_USE_RECENT_GAS_PRICE ? process.env.IS_USE_RECENT_GAS_PRICE  === "true": false;
+        this.isParallelTwoSwapsStrategy = process.env.IS_PARALLEL_TWO_SWAPS_STRATEGY ? process.env.IS_PARALLEL_TWO_SWAPS_STRATEGY  === "true": false;
 
         let msg = `Config.init: DONE;`;
         clog.info(msg);
@@ -92,7 +95,7 @@ class Config
         clog.debug(msg);
         flog.debug(msg);
 
-        msg=`Config.logConfigs: web3RPCURL:${this.web3RPCURL}; privateKey(partial):${this.privateKey.substring(0,6)}...; flashloanContractAddress:${this.flashloanContractAddress};`;
+        msg=`Config.logConfigs: isParallelTwoSwapsStrategy:${this.isParallelTwoSwapsStrategy}; web3RPCURL:${this.web3RPCURL}; privateKey(partial):${this.privateKey.substring(0,6)}...; flashloanContractAddress:${this.flashloanContractAddress};`;
         clog.debug(msg);
         flog.debug(msg);
     }
