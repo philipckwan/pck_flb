@@ -121,9 +121,10 @@ class ParallelTwoSwapsStrategy {
                 flog.debug(`PTSS.refresh: toSwap: toWinnerIdx:${toWinnerIdx}; toMaxRate:${toMaxRate.toFixed(6)};`);
 
                 let newFinalRate = fromMaxRate * toMaxRate;
-                flog.debug(`PTSS.refresh: newFinalRate:${newFinalRate.toFixed(6)}; fromWinnerIdx:${fromWinnerIdx}; toWinnerIdx:${toWinnerIdx};`);
+                let isOpp = newFinalRate > this.latestRateThreshold;
+                flog.debug(`PTSS.refresh: isOpp:${isOpp}; newFinalRate:${newFinalRate.toFixed(6)}; fromWinnerIdx:${fromWinnerIdx}; toWinnerIdx:${toWinnerIdx};`);
 
-                if (newFinalRate > this.latestRateThreshold) {
+                if (isOpp) {
                     if (PCKFLBConfig.remainingFlashloanTries > 0) {
                         flog.debug(`PTSS.refresh: will execute flashloan...`);
                         let results = await PCKFlashloanExecutor.executeFlashloanWithIdxs(this.swapRoutesList[idx], fromWinnerIdx, toWinnerIdx);

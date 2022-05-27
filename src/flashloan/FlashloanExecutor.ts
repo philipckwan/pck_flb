@@ -36,6 +36,13 @@ class FlashloanExecutor {
     }
 
     public async executeFlashloan(swapRoutes:ISwapRoutes):Promise<string> {
+        // currently assume swapRoutes only has 2 routes with 1 hop in each
+        if (swapRoutes.idxBestRouterToAmountList.length != 2) {
+          let msg = `FlEx.executeFlashloan: ERROR - currently only support swapRoutes.idxBestRouterToAmountList.length == 2; thisLength:${swapRoutes.idxBestRouterToAmountList.length};`;
+          clog.error(msg);
+          flog.error(msg);
+          return "ERROR";
+        } 
         return this.executeFlashloanWithIdxs(swapRoutes, swapRoutes.idxBestRouterToAmountList[0], swapRoutes.idxBestRouterToAmountList[1]);
     }
 
@@ -45,14 +52,7 @@ class FlashloanExecutor {
         let flashloanPool = this.getLendingPool(tokenIn);
         let bnLoanAmount = getBigNumber(PCKFLBConfig.loanAmountUSDx, tokenIn.decimals);
         //clog.debug(`FlEx: flashloanPool:${flashloanPool}; bnLoanAmount:${bnLoanAmount};`);
-
-        // currently assume swapRoutes only has 2 routes with 1 hop in each
-        if (swapRoutes.idxBestRouterToAmountList.length != 2) {
-            let msg = `FlEx.executeFlashloan: ERROR - currently only support swapRoutes.idxBestRouterToAmountList.length == 2;`;
-            clog.error(msg);
-            flog.error(msg);
-            return "ERROR";
-        }
+        
         let firstSwapPairRoutes = swapRoutes.swapPairRoutes[0];
         let firstFromToken = firstSwapPairRoutes.fromToken;
         let firstToToken = firstSwapPairRoutes.toToken;
