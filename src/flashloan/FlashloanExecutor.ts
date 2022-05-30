@@ -1,4 +1,4 @@
-import {ISwapRoutes, IParams, IToken, ISwap, IHop, IFlashloanRoute} from "../interfaces";
+import {ISwapRoutes, IParams, IToken, ISwap, IHop, IFlashloanRoute, ISwapPairRoutes} from "../interfaces";
 import * as log4js from "log4js";
 import {ethers} from "ethers";
 import * as FlashloanJson from "../abis/Flashloan.json";
@@ -44,6 +44,73 @@ class FlashloanExecutor {
           return "ERROR";
         } 
         return this.executeFlashloanWithIdxs(swapRoutes, swapRoutes.idxBestRouterToAmountList[0], swapRoutes.idxBestRouterToAmountList[1]);
+    }
+    public async executeFlashloanPair(firstSwap:ISwapPairRoutes, firstRouteIdx:number, secondSwap:ISwapPairRoutes, secondRouteIdx:number) : Promise<string> {
+        let firstFromToken = firstSwap.fromToken;
+
+        let flashloanPool = this.getLendingPool(firstFromToken);
+        let bnLoanAmount = getBigNumber(PCKFLBConfig.loanAmountUSDx, firstFromToken.decimals);
+        let firstToToken = firstSwap.toToken;
+        let firstRoute = firstSwap.routerToAmountList[firstRouteIdx];
+        let firstRouteProtocol = firstRoute.router.protocol;
+
+        let secondFromToken = secondSwap.fromToken;
+        let secondToToken = secondSwap.toToken;
+        let secondRoute = secondSwap.routerToAmountList[secondRouteIdx];
+        let secondRouteProtocol = secondRoute.router.protocol;
+
+        let params:IParams = {
+          flashLoanPool:flashloanPool,
+          loanAmount: bnLoanAmount,
+          firstRoutes:[],
+          secondRoutes:[]
+      }
+
+      let aFirstRoutes = this.toRoute(firstRouteProtocol, firstFromToken, firstToToken);
+      //let msg = `FlEx.executeFlashloan: aFirstRoutes:${JSON.stringify(aFirstRoutes)};`;
+      //clog.debug(msg);
+      //flog.debug(msg);
+      let aSecondRoutes = this.toRoute(secondRouteProtocol, secondFromToken, secondToToken);
+      //msg = `FlEx.executeFlashloan: aSecondRoutes:${JSON.stringify(aSecondRoutes)};`;
+      //clog.debug(msg);
+      //flog.debug(msg);
+      params.firstRoutes = aFirstRoutes;
+      params.secondRoutes = aSecondRoutes;
+
+      let executionGasPrice = await gasPriceCalculator.getGasPrice();
+      let gasPriceLimit = PCKFLBConfig.gasPriceLimit;
+
+      if (executionGasPrice > gasPriceLimit) {
+          executionGasPrice = gasPriceLimit;
+      }
+
+      flog.debug(`FlEx.executeFlashloanPair: about to flashloan...; executionGasPrice:${executionGasPrice};`);
+      /*
+      if (true) {
+        return "DEBUG";
+      }
+      */
+      const Flashloan = new ethers.Contract(
+          PCKFLBConfig.flashloanContractAddress,
+          FlashloanJson.abi,
+          PCKWeb3Handler.web3Provider
+      );
+      let results = "NEW";
+      try {
+        let tx = await Flashloan.connect(PCKWeb3Handler.web3Signer).dodoFlashLoan(params, {
+          gasLimit: PCKFLBConfig.gasLimit,
+          gasPrice: ethers.utils.parseUnits(`${executionGasPrice}`, "gwei"),
+          });
+        flog.debug(`FlEx.executeFlashloanPair: flashloan executed; tx.hash:${tx.hash};`);
+        results = "EXECUTED";
+      } catch (ex) {
+        let msg = `FlEx.executeFlashloanPair: ERROR;`;
+        clog.error(msg);
+        flog.error(msg);
+        flog.error(ex);
+        results = "ERROR";
+      }
+      return results;
     }
 
     public async executeFlashloanWithIdxs(swapRoutes:ISwapRoutes, firstRouteIdx:number, secondRouteIdx:number) : Promise<string> {

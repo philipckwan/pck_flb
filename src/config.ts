@@ -31,8 +31,8 @@ class Config
     public getGasPriceField:string;
     public isUseRecentGasPrice:boolean;
     //public isDecoupleFirstAndSecondRoutes:boolean;
-    public isParallelTwoSwapsStrategy:boolean;
-
+    //public isParallelTwoSwapsStrategy:boolean;
+    public twoSwapsStrategy:string;
 
     public init() {
         if (this.isInited) {
@@ -77,7 +77,8 @@ class Config
 
         this.getGasPriceField = process.env.GET_GAS_PRICE_FIELD ? process.env.GET_GAS_PRICE_FIELD : "";
         this.isUseRecentGasPrice = process.env.IS_USE_RECENT_GAS_PRICE ? process.env.IS_USE_RECENT_GAS_PRICE  === "true": false;
-        this.isParallelTwoSwapsStrategy = process.env.IS_PARALLEL_TWO_SWAPS_STRATEGY ? process.env.IS_PARALLEL_TWO_SWAPS_STRATEGY  === "true": false;
+        this.twoSwapsStrategy = process.env.TWO_SWAPS_STRATEGY ? process.env.TWO_SWAPS_STRATEGY : "SERIAL";
+        //this.isParallelTwoSwapsStrategy = process.env.IS_PARALLEL_TWO_SWAPS_STRATEGY ? process.env.IS_PARALLEL_TWO_SWAPS_STRATEGY  === "true": false;
 
         let msg = `Config.init: DONE;`;
         clog.info(msg);
@@ -87,7 +88,7 @@ class Config
     }
 
     public logConfigs () {
-        let msg=`Config.logConfigs: v0.3; gasLimit:${this.gasLimit}; isAPIGetGasPrice:${this.isAPIGetGasPrice}; gasPriceMultiplier:${this.gasPriceMultiplier}; gasPriceAdder:${this.gasPriceAdder}; gasPriceLimit:${this.gasPriceLimit};`; 
+        let msg=`Config.logConfigs: v0.4; gasLimit:${this.gasLimit}; isAPIGetGasPrice:${this.isAPIGetGasPrice}; gasPriceMultiplier:${this.gasPriceMultiplier}; gasPriceAdder:${this.gasPriceAdder}; gasPriceLimit:${this.gasPriceLimit};`; 
         clog.debug(msg);
         flog.debug(msg);
 
@@ -95,7 +96,7 @@ class Config
         clog.debug(msg);
         flog.debug(msg);
 
-        msg=`Config.logConfigs: isParallelTwoSwapsStrategy:${this.isParallelTwoSwapsStrategy}; web3RPCURL:${this.web3RPCURL}; privateKey(partial):${this.privateKey.substring(0,6)}...; flashloanContractAddress:${this.flashloanContractAddress};`;
+        msg=`Config.logConfigs: twoSwapsStrategy:${this.twoSwapsStrategy}; web3RPCURL:${this.web3RPCURL}; privateKey(partial):${this.privateKey.substring(0,6)}...; flashloanContractAddress:${this.flashloanContractAddress};`;
         clog.debug(msg);
         flog.debug(msg);
     }

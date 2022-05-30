@@ -2,14 +2,14 @@ import { config as dotEnvConfig } from "dotenv";
 let argEnv = process.argv[2] ? process.argv[2] : "";
 dotEnvConfig({path:`${argEnv}.env`});
 import * as log4js from "log4js";
-import {getBigNumber, parseRouterLists, parseSwapLists, printSwapRoutes, compareSwap, getSwapsStrings, formatTime} from "./utility";
-import {fetchSwapPrices} from "./uniswap/uniswapPrice";
+import {parseRouterLists, parseSwapLists, printSwapRoutes} from "./utility";
 import {PCKFLBConfig} from "./config";
 import {gasPriceCalculator} from "./utils/GasPriceCalculator";
-import {PCKFlashloanExecutor} from "./flashloan/FlashloanExecutor";
 import {PCKWeb3Handler} from "./utils/Web3Handler";
 import {PCKPriceV3} from "./uniswap/priceV3";
-import {PCKParallelTwoSwapsStrategy} from "./strategy/ParallelTwoSwapsStrategy";
+import {Strategy} from "./strategy/Strategy";
+import {ParallelTwoSwapsStrategy} from "./strategy/ParallelTwoSwapsStrategy";
+import {SerialTwoSwapsStrategy} from "./strategy/SerialTwoSwapsStrategy";
 
 const flog=log4js.getLogger("file");
 const clog=log4js.getLogger("console");
@@ -43,7 +43,7 @@ export const main = async () => {
     //loggerTest();
     let testVal = process.env.TEST_KEY;
     let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
-    let msg = `index.main: v1.6; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v1.7; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
     clog.debug(msg);
     flog.debug(msg);
 
@@ -63,69 +63,31 @@ export const main = async () => {
     let swapRoutesList = parseSwapLists(swapRouteListStr, routersList, PCKFLBConfig.loanAmountUSDx);
 
     
+    let thisStrategy:Strategy;
 
-    let isFlashloanInProgress=false;
-    if (PCKFLBConfig.isParallelTwoSwapsStrategy) {
-      PCKParallelTwoSwapsStrategy.init(swapRoutesList);
+    if (PCKFLBConfig.twoSwapsStrategy === Strategy.MODE[Strategy.MODE.PARALLEL_V1] || PCKFLBConfig.twoSwapsStrategy === Strategy.MODE[Strategy.MODE.PARALLEL_V2]) {
+      let versionStr = (PCKFLBConfig.twoSwapsStrategy === Strategy.MODE[Strategy.MODE.PARALLEL_V2]) ? ParallelTwoSwapsStrategy.VERSION.V2 : ParallelTwoSwapsStrategy.VERSION.V1;
+      thisStrategy = new ParallelTwoSwapsStrategy(versionStr);
+      await thisStrategy.initTwoSwapsArray(swapRoutesList);
+      //PCKParallelTwoSwapsStrategy.init(swapRoutesList);
+      /*
       for (let i = 0; i < swapRoutesList.length; i++) {
         let aSwapRoutes = swapRoutesList[i];
         let bnLoanAmountUSDx = getBigNumber(PCKFLBConfig.loanAmountUSDx, aSwapRoutes.swapPairRoutes[0].fromToken.decimals);
-        await PCKParallelTwoSwapsStrategy.add(aSwapRoutes.swapPairRoutes[0], aSwapRoutes.swapPairRoutes[1], bnLoanAmountUSDx);
-        PCKParallelTwoSwapsStrategy.printTwoSwaps(i);
+        await thisStrategy.addSwapPair(aSwapRoutes.swapPairRoutes[0], aSwapRoutes.swapPairRoutes[1], bnLoanAmountUSDx);
+        thisStrategy.printSwapPair(i);
       }
+      */
+    } else {
+      thisStrategy = new SerialTwoSwapsStrategy(swapRoutesList);
     }
+    thisStrategy.display();
 
-    for (let i = 0; i < swapRoutesList.length; i++) { //let aSwapRoutes of swapRoutesList) {
-      //printSwapRoutes(aSwapRoutes);  
-      let aSwapRoutes = swapRoutesList[i];
-      let bnLoanAmountUSDx = getBigNumber(PCKFLBConfig.loanAmountUSDx, aSwapRoutes.swapPairRoutes[0].fromToken.decimals);
-      
+    //log4js.shutdown(function() { process.exit(1); });
+
+    for (let i = 0; i < swapRoutesList.length; i++) { //let aSwapRoutes of swapRoutesList) {      
       const func = async () => {
-        let isOpp = false;
-        if (PCKFLBConfig.isParallelTwoSwapsStrategy) {
-          if (!PCKParallelTwoSwapsStrategy.isBusy) {
-          PCKParallelTwoSwapsStrategy.refresh(i);
-          } else {
-            flog.debug(`index.main.func: PCKParallelTwoSwapsStrategy is busy, skipping execution for now...`);
-          }
-        } else {
-          //clog.debug(`index.main.func: START; ${getSwapsStrings(aSwapRoutes)};`);
-          let startTime = Date.now();
-          await fetchSwapPrices(aSwapRoutes, bnLoanAmountUSDx);
-          let endTime = Date.now();
-          let timeDiff = (endTime - startTime) / 1000;
-          let [diffAmt, diffPct] = compareSwap(aSwapRoutes);
-          isOpp = diffAmt > PCKFLBConfig.flashloanExecutionThresholdUSDx;
-          flog.debug(`index.main.func: oldStrategy; ${getSwapsStrings(aSwapRoutes)}; isOpp:${isOpp}; diffAmt:${diffAmt.toFixed(2)}, diffPct:${diffPct.toFixed(5)};T:[${formatTime(startTime)}->${formatTime(endTime)}(${timeDiff})];`);
-        }
-        if (isFlashloanInProgress) {
-          flog.debug(`index.main.func: a flashloan execution is in progress, will skip this flashloan...`);
-          return;
-        }
-        if (isOpp) {
-          isFlashloanInProgress=true;
-          let fromTokenSymbol = aSwapRoutes.swapPairRoutes[0].fromToken.symbol;
-          let toTokenSymbol = aSwapRoutes.swapPairRoutes[0].toToken.symbol;
-          let firstBestRouteIdx = aSwapRoutes.idxBestRouterToAmountList[0];
-          let firstBestRouterName= aSwapRoutes.swapPairRoutes[0].routerToAmountList[firstBestRouteIdx].router.name;
-          let firstBestRouterRate = aSwapRoutes.swapPairRoutes[0].routerToAmountList[firstBestRouteIdx].toFromRate;
-          let secondBestRouteIdx = aSwapRoutes.idxBestRouterToAmountList[1];
-          let secondBestRouterName= aSwapRoutes.swapPairRoutes[1].routerToAmountList[secondBestRouteIdx].router.name;
-          let secondBestRouterRate = aSwapRoutes.swapPairRoutes[1].routerToAmountList[secondBestRouteIdx].toFromRate;
-          let finalRate = firstBestRouterRate * secondBestRouterRate;
-          let msg = `index.main.func: winning route:[${fromTokenSymbol}]->[${firstBestRouterName}:${toTokenSymbol}:${firstBestRouterRate}]->[${secondBestRouterName}:${fromTokenSymbol}:${secondBestRouterRate}]; %:${finalRate.toFixed(5)};`;
-          flog.debug(msg);
-          
-          if (PCKFLBConfig.remainingFlashloanTries > 0) {
-            flog.debug(`index.main.func: about to execute flashloan; final%${finalRate.toFixed(5)};`);
-            let results = await PCKFlashloanExecutor.executeFlashloan(aSwapRoutes);
-            PCKFLBConfig.remainingFlashloanTries--;
-            flog.debug(`index.main.func: flashloan executed, results=${results}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
-          } else {
-            flog.debug(`index.main.func: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
-          }
-          isFlashloanInProgress=false;
-        }
+        thisStrategy.refresh(i);
       }
       //func();  
       setInterval(func, pollIntervalMSec);

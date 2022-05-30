@@ -20,6 +20,6 @@ DONE(24/5,v1.3)-concurrent flashloan execution issue seems not fixed, need to re
 DONE(25/5,v1.5)-add to current log the route (swap name) when isOpp:true
 DONE(25/5,v1.5)-see if can de-couple the first and second route API call to improve performance
 DONE(27/5,v1.6)-unexpected error: 05/26T13:16:41:562;ERROR;FlEx.executeFlashloan: ERROR - currently only support swapRoutes.idxBestRouterToAmountList.length == 2;
--still need to try de-couple the fromSwap with toSwap to improve performance
+PARTIAL_DONE(30/5,v1.7)-still need to try de-couple the fromSwap with toSwap to improve performance
 DONE(27/5,v1.6)-add isOpp:true indicator to log for PTSS
 -oldStrategy: 05/26T08:21:53:090;ERROR;Error: insufficient funds for intrinsic transaction cost
