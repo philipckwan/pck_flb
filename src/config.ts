@@ -41,7 +41,7 @@ class Config
             flog.warn(msg);
         }
 
-        this.gasLimit = 15000000;
+        this.gasLimit = process.env.GAS_LIMIT ? parseInt(process.env.GAS_LIMIT) : 12000000;
         let gasPriceOptions = process.env.GAS_PRICE_OPTIONS ? process.env.GAS_PRICE_OPTIONS : "*1";
         let firstChar = gasPriceOptions.charAt(0);
         let restChars = gasPriceOptions.substring(1);
