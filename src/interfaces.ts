@@ -41,6 +41,8 @@ export interface ISwapRoutes {
 export interface IToAmountAndRate {
   toAmount:BigNumber;
   toFromRate:number;
+  routerIdx:number;
+  isFrom:boolean;
 }
 
 export interface ISwap {

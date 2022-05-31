@@ -9,9 +9,9 @@ const flog = log4js.getLogger("file");
 const clog = log4js.getLogger("console");
 const slog = log4js.getLogger("statsFile");
 
-export const getSwapAmountAndRate = async (fromToken : IToken, toToken : IToken, router : IRouter, fromAmount = getBigNumber(1)) : Promise<IToAmountAndRate> => {
+export const getSwapAmountAndRate = async (fromToken : IToken, toToken : IToken, router : IRouter, fromAmount = getBigNumber(1), aRouterIdx = 0, aIsFrom = true) : Promise<IToAmountAndRate> => {
     //let bnFromAmount = getBigNumber(fromAmount, fromToken.decimals);
-    let resultToAmountAndRate:IToAmountAndRate = {toAmount:getBigNumber(0),toFromRate:0};
+    let resultToAmountAndRate:IToAmountAndRate = {toAmount:getBigNumber(0),toFromRate:0, routerIdx:aRouterIdx, isFrom:aIsFrom};
     //let bnToAmount = getBigNumber(0);
     let startTime = Date.now();
     //clog.debug(`utility.getSwapPriceRate: ${fromToken.symbol} -> ${toToken.symbol} @ [${router.name}]; from$${fromAmount}`);

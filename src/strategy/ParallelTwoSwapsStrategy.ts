@@ -7,7 +7,7 @@ import {getSwapAmountAndRate} from "../uniswap/uniswapPrice"
 import {PCKFlashloanExecutor} from "../flashloan/FlashloanExecutor";
 import {PCKFLBConfig} from "../config";
 import {Strategy} from "./Strategy";
-import {getBigNumber} from "../utility";
+import {getBigNumber, formatTime} from "../utility";
 
 
 
@@ -99,12 +99,80 @@ export class ParallelTwoSwapsStrategy extends Strategy {
         this.twoSwapsArray.push(aTwoSwaps);
     }
 
-    public async refresh(idx:number){
-        flog.debug(`PTSS.refresh: START; idx:${idx};`);
+    public async refresh(idx:number) {
+        if (this.version == ParallelTwoSwapsStrategy.VERSION.V2) {
+            return this.refreshV2(idx);
+        } else {
+            return this.refreshV1(idx);
+        }
+    }
+
+    public async refreshV2(idx:number) {
+        flog.debug(`PTSS.refreshV2: START; idx:${idx};`);
+        this.isBusy = true;
+        let aTwoSwaps = this.twoSwapsArray[idx];
+
+        let allSwapPromises = [];
+        let startTime = Date.now();
+        for (let aRTA of aTwoSwaps.fromSwap.routerToAmountList) {
+            let promANewAmountAndRate = getSwapAmountAndRate(aTwoSwaps.fromSwap.fromToken, aTwoSwaps.fromSwap.toToken, aRTA.router, aTwoSwaps.fromSwap.fromAmount, aRTA.idx, true);
+            allSwapPromises.push(promANewAmountAndRate);
+        }
+        for (let aRTA of aTwoSwaps.toSwap.routerToAmountList) {
+            let promANewAmountAndRate = getSwapAmountAndRate(aTwoSwaps.toSwap.fromToken, aTwoSwaps.toSwap.toToken, aRTA.router, aTwoSwaps.toSwap.fromAmount, aRTA.idx, false);
+            allSwapPromises.push(promANewAmountAndRate);
+        }
+        Promise.all(allSwapPromises).then(async (newAmountAndRates) => {
+            let fromMaxRate = 0;
+            let fromWinnerIdx = 0;
+            let toMaxRate = 0;
+            let toWinnerIdx = 0;
+            for (let i = 0; i < newAmountAndRates.length; i++) {
+                let aNewAmountAndRate = newAmountAndRates[i];
+                //flog.debug(`PTSS.refresh: fromSwap: aNAAR[${i}].toFromRate:${aNewAmountAndRate.toFromRate.toFixed(6)};`);
+                if (aNewAmountAndRate.isFrom) {
+                    flog.debug(`__from:routerIdx:[${aNewAmountAndRate.routerIdx}]; %:${aNewAmountAndRate.toFromRate};`);
+                    if (aNewAmountAndRate.toFromRate > fromMaxRate) {                        
+                        fromWinnerIdx = aNewAmountAndRate.routerIdx;
+                        fromMaxRate = aNewAmountAndRate.toFromRate;
+                    } 
+                } else {
+                    flog.debug(`__to:routerIdx:[${aNewAmountAndRate.routerIdx}]; %:${aNewAmountAndRate.toFromRate};`);
+                    if (aNewAmountAndRate.toFromRate > toMaxRate) {
+                        toWinnerIdx = aNewAmountAndRate.routerIdx;
+                        toMaxRate = aNewAmountAndRate.toFromRate;
+                    }
+                }
+            }
+            let endTime = Date.now();
+            let timeDiff = (endTime - startTime) / 1000;
+            let newFinalRate = fromMaxRate * toMaxRate;
+            let isOpp = newFinalRate > this.latestRateThreshold;
+            let fromBestRouter = aTwoSwaps.fromSwap.routerToAmountList[fromWinnerIdx].router.name;
+            let toBestRouter = aTwoSwaps.toSwap.routerToAmountList[toWinnerIdx].router.name;
+            flog.debug(`PTSS.refreshV2: isOpp:${isOpp}; newFinal%:${newFinalRate.toFixed(6)}; [${fromBestRouter}:${fromMaxRate.toFixed(6)}]->[${toBestRouter}:${toMaxRate.toFixed(6)}]; T:[${formatTime(startTime)}->${formatTime(endTime)}(${timeDiff})];`);
+
+            if (isOpp) {
+                if (PCKFLBConfig.remainingFlashloanTries > 0) {
+                    flog.debug(`PTSS.refreshV2: will execute flashloan...`);
+                    let results = await PCKFlashloanExecutor.executeFlashloanPair(aTwoSwaps.fromSwap, fromWinnerIdx, aTwoSwaps.toSwap, toWinnerIdx);
+                    PCKFLBConfig.remainingFlashloanTries--;
+                    flog.debug(`PTSS.refreshV2: flashloan executed, results=${results}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
+                }   else {
+                    flog.debug(`PTSS.refreshV2: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
+                }
+            }
+            this.isBusy = false;
+        });
+    }
+
+    public async refreshV1(idx:number) {
+        flog.debug(`PTSS.refreshV1: START; idx:${idx};`);
         this.isBusy = true;
         let aTwoSwaps = this.twoSwapsArray[idx];
 
         let fromSwapPromises = [];
+        let startTime = Date.now();
         for (let aRTA of aTwoSwaps.fromSwap.routerToAmountList) {
             let promANewAmountAndRate = getSwapAmountAndRate(aTwoSwaps.fromSwap.fromToken, aTwoSwaps.fromSwap.toToken, aRTA.router, aTwoSwaps.fromSwap.fromAmount);
             fromSwapPromises.push(promANewAmountAndRate);
@@ -114,13 +182,12 @@ export class ParallelTwoSwapsStrategy extends Strategy {
             let fromWinnerIdx = 0;
             for (let i = 0; i < newAmountAndRates.length; i++) {
                 let aNewAmountAndRate = newAmountAndRates[i];
-                flog.debug(`PTSS.refresh: fromSwap: aNAAR[${i}].toFromRate:${aNewAmountAndRate.toFromRate.toFixed(6)};`);
                 if (aNewAmountAndRate.toFromRate > fromMaxRate) {
                     fromWinnerIdx = i;
                     fromMaxRate = aNewAmountAndRate.toFromRate;
                 }
             }
-            flog.debug(`PTSS.refresh: fromSwap: fromWinnerIdx:${fromWinnerIdx}; fromMaxRate:${fromMaxRate.toFixed(6)};`);
+            //flog.debug(`PTSS.refresh: fromSwap: fromWinner:${aTwoSwaps.fromSwap.routerToAmountList[fromWinnerIdx].router.name}; fromMaxRate:${fromMaxRate.toFixed(6)};`);
             let toSwapPromises = [];
             for (let aRTA of aTwoSwaps.toSwap.routerToAmountList) {
                 let promANewAmountAndRate = getSwapAmountAndRate(aTwoSwaps.toSwap.fromToken, aTwoSwaps.toSwap.toToken, aRTA.router, aTwoSwaps.toSwap.fromAmount);
@@ -131,26 +198,29 @@ export class ParallelTwoSwapsStrategy extends Strategy {
                 let toWinnerIdx = 0;
                 for (let i = 0; i < newAmountAndRates.length; i++) {
                     let aNewAmountAndRate = newAmountAndRates[i];
-                    flog.debug(`PTSS.refresh: toSwap: aNAAR[${i}].toFromRate:${aNewAmountAndRate.toFromRate.toFixed(6)};`);
+                    //flog.debug(`PTSS.refresh: toSwap: aNAAR[${i}].toFromRate:${aNewAmountAndRate.toFromRate.toFixed(6)};`);
                     if (aNewAmountAndRate.toFromRate > toMaxRate) {
                         toWinnerIdx = i;
                         toMaxRate = aNewAmountAndRate.toFromRate;
                     }
                 }
-                flog.debug(`PTSS.refresh: toSwap: toWinnerIdx:${toWinnerIdx}; toMaxRate:${toMaxRate.toFixed(6)};`);
-
+                //flog.debug(`PTSS.refresh: toSwap: toWinner:${aTwoSwaps.toSwap.routerToAmountList[toWinnerIdx].router.name}; toMaxRate:${toMaxRate.toFixed(6)};`);
+                let endTime = Date.now();
+                let timeDiff = (endTime - startTime) / 1000;
                 let newFinalRate = fromMaxRate * toMaxRate;
                 let isOpp = newFinalRate > this.latestRateThreshold;
-                flog.debug(`PTSS.refresh: isOpp:${isOpp}; newFinalRate:${newFinalRate.toFixed(6)}; fromWinnerIdx:${fromWinnerIdx}; toWinnerIdx:${toWinnerIdx};`);
+                let fromBestRouter = aTwoSwaps.fromSwap.routerToAmountList[fromWinnerIdx].router.name;
+                let toBestRouter = aTwoSwaps.toSwap.routerToAmountList[toWinnerIdx].router.name;
+                flog.debug(`PTSS.refreshV1: isOpp:${isOpp}; newFinal%:${newFinalRate.toFixed(6)}; [${fromBestRouter}:${fromMaxRate.toFixed(6)}]->[${toBestRouter}:${toMaxRate.toFixed(6)}]; T:[${formatTime(startTime)}->${formatTime(endTime)}(${timeDiff})];`);
 
                 if (isOpp) {
                     if (PCKFLBConfig.remainingFlashloanTries > 0) {
-                        flog.debug(`PTSS.refresh: will execute flashloan...`);
+                        flog.debug(`PTSS.refreshV1: will execute flashloan...`);
                         let results = await PCKFlashloanExecutor.executeFlashloanPair(aTwoSwaps.fromSwap, fromWinnerIdx, aTwoSwaps.toSwap, toWinnerIdx);
                         PCKFLBConfig.remainingFlashloanTries--;
-                        flog.debug(`PTSS.refresh: flashloan executed, results=${results}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
+                        flog.debug(`PTSS.refreshV1: flashloan executed, results=${results}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
                     }   else {
-                        flog.debug(`PTSS.refresh: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
+                        flog.debug(`PTSS.refreshV1: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
                     }
                 }
                 this.isBusy = false;

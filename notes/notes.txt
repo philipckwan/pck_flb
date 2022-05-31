@@ -24,6 +24,7 @@ PARTIAL_DONE(30/5,v1.7)-still need to try de-couple the fromSwap with toSwap to 
 DONE(27/5,v1.6)-add isOpp:true indicator to log for PTSS
 -oldStrategy: 05/26T08:21:53:090;ERROR;Error: insufficient funds for intrinsic transaction cost
 -progressive increase gas price to see if can pre-empt the previous execution
--reduce logging in PTSS and output the winning router 
--log the time start and duration in PTSS when isOpp:true
+DONE(v1.9)-reduce logging in PTSS and output the winning router 
+DONE(v1.9)-log the time start and duration in PTSS when isOpp:true
 DONE(31/5,v1.8)-lower the gasLimit (or make it configurable) so that the node can accept the tx earlier (i.e. the tx won't be using too much space of a block)
+DONE(v1.9)-finish PTSS v2
