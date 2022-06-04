@@ -108,7 +108,7 @@ export class ParallelTwoSwapsStrategy extends Strategy {
     }
 
     public async refreshV2(idx:number) {
-        flog.debug(`PTSS.refreshV2: START; idx:${idx};`);
+        //flog.debug(`PTSS.refreshV2: START; idx:${idx};`);
         this.isBusy = true;
         let aTwoSwaps = this.twoSwapsArray[idx];
 
@@ -131,13 +131,13 @@ export class ParallelTwoSwapsStrategy extends Strategy {
                 let aNewAmountAndRate = newAmountAndRates[i];
                 //flog.debug(`PTSS.refresh: fromSwap: aNAAR[${i}].toFromRate:${aNewAmountAndRate.toFromRate.toFixed(6)};`);
                 if (aNewAmountAndRate.isFrom) {
-                    flog.debug(`__from:routerIdx:[${aNewAmountAndRate.routerIdx}]; %:${aNewAmountAndRate.toFromRate};`);
+                    //flog.debug(`__from:routerIdx:[${aNewAmountAndRate.routerIdx}]; %:${aNewAmountAndRate.toFromRate};`);
                     if (aNewAmountAndRate.toFromRate > fromMaxRate) {                        
                         fromWinnerIdx = aNewAmountAndRate.routerIdx;
                         fromMaxRate = aNewAmountAndRate.toFromRate;
                     } 
                 } else {
-                    flog.debug(`__to:routerIdx:[${aNewAmountAndRate.routerIdx}]; %:${aNewAmountAndRate.toFromRate};`);
+                    //flog.debug(`__to:routerIdx:[${aNewAmountAndRate.routerIdx}]; %:${aNewAmountAndRate.toFromRate};`);
                     if (aNewAmountAndRate.toFromRate > toMaxRate) {
                         toWinnerIdx = aNewAmountAndRate.routerIdx;
                         toMaxRate = aNewAmountAndRate.toFromRate;
@@ -150,7 +150,7 @@ export class ParallelTwoSwapsStrategy extends Strategy {
             let isOpp = newFinalRate > this.latestRateThreshold;
             let fromBestRouter = aTwoSwaps.fromSwap.routerToAmountList[fromWinnerIdx].router.name;
             let toBestRouter = aTwoSwaps.toSwap.routerToAmountList[toWinnerIdx].router.name;
-            flog.debug(`PTSS.refreshV2: isOpp:${isOpp}; newFinal%:${newFinalRate.toFixed(6)}; [${fromBestRouter}:${fromMaxRate.toFixed(6)}]->[${toBestRouter}:${toMaxRate.toFixed(6)}]; T:[${formatTime(startTime)}->${formatTime(endTime)}(${timeDiff})];`);
+            flog.debug(`PTSS.refreshV2: isOpp:${isOpp};final%:${newFinalRate.toFixed(6)};T:[${timeDiff}|${formatTime(startTime)}->${formatTime(endTime)}];[${aTwoSwaps.fromSwap.fromToken.symbol}:${aTwoSwaps.toSwap.fromToken.symbol}];[${fromBestRouter}:${fromMaxRate.toFixed(6)}]->[${toBestRouter}:${toMaxRate.toFixed(6)}];`);
 
             if (isOpp) {
                 if (PCKFLBConfig.remainingFlashloanTries > 0) {
@@ -167,7 +167,7 @@ export class ParallelTwoSwapsStrategy extends Strategy {
     }
 
     public async refreshV1(idx:number) {
-        flog.debug(`PTSS.refreshV1: START; idx:${idx};`);
+        //flog.debug(`PTSS.refreshV1: START; idx:${idx};`);
         this.isBusy = true;
         let aTwoSwaps = this.twoSwapsArray[idx];
 
@@ -211,7 +211,8 @@ export class ParallelTwoSwapsStrategy extends Strategy {
                 let isOpp = newFinalRate > this.latestRateThreshold;
                 let fromBestRouter = aTwoSwaps.fromSwap.routerToAmountList[fromWinnerIdx].router.name;
                 let toBestRouter = aTwoSwaps.toSwap.routerToAmountList[toWinnerIdx].router.name;
-                flog.debug(`PTSS.refreshV1: isOpp:${isOpp}; newFinal%:${newFinalRate.toFixed(6)}; [${fromBestRouter}:${fromMaxRate.toFixed(6)}]->[${toBestRouter}:${toMaxRate.toFixed(6)}]; T:[${formatTime(startTime)}->${formatTime(endTime)}(${timeDiff})];`);
+                //flog.debug(`PTSS.refreshV1: isOpp:${isOpp}; newFinal%:${newFinalRate.toFixed(6)}; [${fromBestRouter}:${fromMaxRate.toFixed(6)}]->[${toBestRouter}:${toMaxRate.toFixed(6)}]; T:[${formatTime(startTime)}->${formatTime(endTime)}(${timeDiff})];`);
+                flog.debug(`PTSS.refreshV1: isOpp:${isOpp};final%:${newFinalRate.toFixed(6)};T:[${timeDiff}|${formatTime(startTime)}->${formatTime(endTime)}];[${aTwoSwaps.fromSwap.fromToken.symbol}:${aTwoSwaps.toSwap.fromToken.symbol}];[${fromBestRouter}:${fromMaxRate.toFixed(6)}]->[${toBestRouter}:${toMaxRate.toFixed(6)}];`);
 
                 if (isOpp) {
                     if (PCKFLBConfig.remainingFlashloanTries > 0) {
