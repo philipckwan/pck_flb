@@ -106,9 +106,9 @@ class GasPriceCalculator {
     }
 
     private async getGasPriceDispatch(updateGasPriceRecent = false): Promise<number> {
-        flog.debug(`GasPriceCalculator.getGasPriceDispatch: 1.1; updateGasPriceRecent:${updateGasPriceRecent};`);
+        flog.debug(`GasPriceCalculator.getGasPriceDispatch: v1.2; updateGasPriceRecent:${updateGasPriceRecent};`);
         if (updateGasPriceRecent) {
-            this.getGasPriceFromEthers(updateGasPriceRecent);
+            //this.getGasPriceFromEthers(updateGasPriceRecent);
             this.getGasPriceFromPolyscan(updateGasPriceRecent);
             return 0;
         } else {
@@ -153,7 +153,7 @@ class GasPriceCalculator {
                     }
                 }
             }
-            flog.debug(`GasPriceCalculator.getGasPriceFromPolyscan: time:${timeDiff};`);
+            flog.debug(`GasPriceCalculator.getGasPriceFromPolyscan: SAFE:${this.gasPriceRecentPolygonSafe}; PROPOSE:${this.gasPriceRecentPolygonPropose}; FAST:${this.gasPriceRecentPolygonFast}: T:${timeDiff};`);
         } catch (ex) {
             flog.error(`GasPriceCalculator.getGasPriceFromPolyscan: ERROR;`);
             flog.error(ex);
@@ -184,7 +184,7 @@ class GasPriceCalculator {
 
     public async doAPollGasPrice() {
         await this.getGasPriceDispatch(true);
-        flog.debug(`GasPriceCalculator.doAPollGasPrice: safe:${this.gasPriceRecentPolygonSafe}; propose:${this.gasPriceRecentPolygonPropose}; fast:${this.gasPriceRecentPolygonFast}: ethers:${this.gasPriceRecentEthers};`);
+        //flog.debug(`GasPriceCalculator.doAPollGasPrice: safe:${this.gasPriceRecentPolygonSafe}; propose:${this.gasPriceRecentPolygonPropose}; fast:${this.gasPriceRecentPolygonFast}: ethers:${this.gasPriceRecentEthers};`);
     }
 
     public logConfigs () {
