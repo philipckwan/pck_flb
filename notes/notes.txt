@@ -30,3 +30,4 @@ DONE(31/5,v1.8)-lower the gasLimit (or make it configurable) so that the node ca
 DONE(v1.9)-finish PTSS v2
 DONE(v1.10)-reduce logging in PTSS v2, also log for the pair when displaying isOpp
 DONE(v1.11)-remove eth get gasPrice as I am not using it, rearrange the logging code in GasPriceCalculator
+DONE(v1.12)-increase the number of decimal point when logging prices to stats log file

@@ -37,7 +37,7 @@ export const getSwapAmountAndRate = async (fromToken : IToken, toToken : IToken,
     //let nFromAmount = 1;
     resultToAmountAndRate.toFromRate = nToAmount / nFromAmount;
     //clog.debug(`__toFromRate:${resultToAmountAndRate.toFromRate}; router:${router.name};`);
-    slog.debug(`${fromToken.symbol.padStart(6)}|${toToken.symbol.padStart(6)}|${router.name.padStart(18)}|${resultToAmountAndRate.toFromRate.toFixed(5).padStart(12)}|${formatDate(startTime)}|${formatDate(endTime)}|${timeDiff.toFixed(3)}`);
+    slog.debug(`${fromToken.symbol.padStart(6)}|${toToken.symbol.padStart(6)}|${router.name.padStart(18)}|${resultToAmountAndRate.toFromRate.toFixed(7).padStart(14)}|${formatDate(startTime)}|${formatDate(endTime)}|${timeDiff.toFixed(3)}`);
     return resultToAmountAndRate;
 };
 
