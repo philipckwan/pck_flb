@@ -46,6 +46,10 @@ class FlashloanExecutor {
         return this.executeFlashloanWithIdxs(swapRoutes, swapRoutes.idxBestRouterToAmountList[0], swapRoutes.idxBestRouterToAmountList[1]);
     }
     public async executeFlashloanPair(firstSwap:ISwapPairRoutes, firstRouteIdx:number, secondSwap:ISwapPairRoutes, secondRouteIdx:number) : Promise<string> {
+        if (PCKFLBConfig.remainingFlashloanTries <= 0) {
+          flog.debug(`FlEx.executeFlashloanPair: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
+          return "NOT EXECUTED";
+        }
         let firstFromToken = firstSwap.fromToken;
 
         let flashloanPool = this.getLendingPool(firstFromToken);
@@ -81,7 +85,8 @@ class FlashloanExecutor {
       let gasPriceLimit = PCKFLBConfig.gasPriceLimit;
 
       if (executionGasPrice > gasPriceLimit) {
-          executionGasPrice = gasPriceLimit;
+        flog.debug(`FlEx.executeFlashloanPair: gasPrice too high, will not execute flashloan; executionGasPrice:${executionGasPrice};`);
+        return "NOT EXECUTED";
       }
 
       flog.debug(`FlEx.executeFlashloanPair: about to flashloan...; executionGasPrice:${executionGasPrice};`);
@@ -102,6 +107,7 @@ class FlashloanExecutor {
           gasPrice: ethers.utils.parseUnits(`${executionGasPrice}`, "gwei"),
           });
         flog.debug(`FlEx.executeFlashloanPair: flashloan executed; tx.hash:${tx.hash};`);
+        PCKFLBConfig.remainingFlashloanTries--;
         results = "EXECUTED";
       } catch (ex) {
         let msg = `FlEx.executeFlashloanPair: ERROR;`;
@@ -114,6 +120,10 @@ class FlashloanExecutor {
     }
 
     public async executeFlashloanWithIdxs(swapRoutes:ISwapRoutes, firstRouteIdx:number, secondRouteIdx:number) : Promise<string> {
+        if (PCKFLBConfig.remainingFlashloanTries <= 0) {
+          flog.debug(`FlEx.executeFlashloanWithIdxs: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
+          return "NOT EXECUTED";
+        }
         //clog.debug(`FlEx.executeFlashloan: 1.0;`);
         let tokenIn = swapRoutes.swapPairRoutes[0].fromToken;
         let flashloanPool = this.getLendingPool(tokenIn);
@@ -154,10 +164,11 @@ class FlashloanExecutor {
         let gasPriceLimit = PCKFLBConfig.gasPriceLimit;
 
         if (executionGasPrice > gasPriceLimit) {
-            executionGasPrice = gasPriceLimit;
+          flog.debug(`FlEx.executeFlashloanWithIdxs: gasPrice too high, will not execute flashloan; executionGasPrice:${executionGasPrice};`);
+          return "NOT EXECUTED";
         }
 
-        flog.debug(`FlEx.executeFlashloan: about to flashloan...; executionGasPrice:${executionGasPrice};`);
+        flog.debug(`FlEx.executeFlashloanWithIdxs: about to flashloan...; executionGasPrice:${executionGasPrice};`);
         /*
         if (true) {
           return "DEBUG";
@@ -174,10 +185,11 @@ class FlashloanExecutor {
             gasLimit: PCKFLBConfig.gasLimit,
             gasPrice: ethers.utils.parseUnits(`${executionGasPrice}`, "gwei"),
             });
-          flog.debug(`FlEx.executeFlashloan: flashloan executed; tx.hash:${tx.hash};`);
+          flog.debug(`FlEx.executeFlashloanWithIdxs: flashloan executed; tx.hash:${tx.hash};`);
+          PCKFLBConfig.remainingFlashloanTries--;
           results = "EXECUTED";
         } catch (ex) {
-          let msg = `FlEx.executeFlashloan: ERROR;`;
+          let msg = `FlEx.executeFlashloanWithIdxs: ERROR;`;
           clog.error(msg);
           flog.error(msg);
           flog.error(ex);

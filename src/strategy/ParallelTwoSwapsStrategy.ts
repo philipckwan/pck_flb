@@ -153,14 +153,9 @@ export class ParallelTwoSwapsStrategy extends Strategy {
             flog.debug(`PTSS.refreshV2: isOpp:${isOpp};final%:${newFinalRate.toFixed(6)};T:[${timeDiff}|${formatTime(startTime)}->${formatTime(endTime)}];[${aTwoSwaps.fromSwap.fromToken.symbol}:${aTwoSwaps.toSwap.fromToken.symbol}];[${fromBestRouter}:${fromMaxRate.toFixed(6)}]->[${toBestRouter}:${toMaxRate.toFixed(6)}];`);
 
             if (isOpp) {
-                if (PCKFLBConfig.remainingFlashloanTries > 0) {
-                    flog.debug(`PTSS.refreshV2: will execute flashloan...`);
-                    let results = await PCKFlashloanExecutor.executeFlashloanPair(aTwoSwaps.fromSwap, fromWinnerIdx, aTwoSwaps.toSwap, toWinnerIdx);
-                    PCKFLBConfig.remainingFlashloanTries--;
-                    flog.debug(`PTSS.refreshV2: flashloan executed, results=${results}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
-                }   else {
-                    flog.debug(`PTSS.refreshV2: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
-                }
+                flog.debug(`PTSS.refreshV2: about to call flashloan executor;`);
+                let results = await PCKFlashloanExecutor.executeFlashloanPair(aTwoSwaps.fromSwap, fromWinnerIdx, aTwoSwaps.toSwap, toWinnerIdx);
+                flog.debug(`PTSS.refreshV2: flashloan executor called, results=${results}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
             }
             this.isBusy = false;
         });
@@ -215,14 +210,9 @@ export class ParallelTwoSwapsStrategy extends Strategy {
                 flog.debug(`PTSS.refreshV1: isOpp:${isOpp};final%:${newFinalRate.toFixed(6)};T:[${timeDiff}|${formatTime(startTime)}->${formatTime(endTime)}];[${aTwoSwaps.fromSwap.fromToken.symbol}:${aTwoSwaps.toSwap.fromToken.symbol}];[${fromBestRouter}:${fromMaxRate.toFixed(6)}]->[${toBestRouter}:${toMaxRate.toFixed(6)}];`);
 
                 if (isOpp) {
-                    if (PCKFLBConfig.remainingFlashloanTries > 0) {
-                        flog.debug(`PTSS.refreshV1: will execute flashloan...`);
-                        let results = await PCKFlashloanExecutor.executeFlashloanPair(aTwoSwaps.fromSwap, fromWinnerIdx, aTwoSwaps.toSwap, toWinnerIdx);
-                        PCKFLBConfig.remainingFlashloanTries--;
-                        flog.debug(`PTSS.refreshV1: flashloan executed, results=${results}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
-                    }   else {
-                        flog.debug(`PTSS.refreshV1: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
-                    }
+                    flog.debug(`PTSS.refreshV1: about to call flashloan executor;`);
+                    let results = await PCKFlashloanExecutor.executeFlashloanPair(aTwoSwaps.fromSwap, fromWinnerIdx, aTwoSwaps.toSwap, toWinnerIdx);
+                    flog.debug(`PTSS.refreshV1: flashloan executor called, results=${results}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
                 }
                 this.isBusy = false;
             });

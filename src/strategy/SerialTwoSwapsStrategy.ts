@@ -46,14 +46,10 @@ export class SerialTwoSwapsStrategy extends Strategy {
             let msg = `STSS.refresh: winning route:[${fromTokenSymbol}]->[${firstBestRouterName}:${toTokenSymbol}:${firstBestRouterRate}]->[${secondBestRouterName}:${fromTokenSymbol}:${secondBestRouterRate}]; %:${finalRate.toFixed(5)};`;
             flog.debug(msg);
             
-            if (PCKFLBConfig.remainingFlashloanTries > 0) {
-                flog.debug(`STSS.refresh: about to execute flashloan; final%${finalRate.toFixed(5)};`);
-                let results = await PCKFlashloanExecutor.executeFlashloan(aSwapPair);
-                PCKFLBConfig.remainingFlashloanTries--;
-                flog.debug(`STSS.refresh: flashloan executed, results=${results}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
-            } else {
-                flog.debug(`STSS.refresh: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
-            }
+            flog.debug(`STSS.refresh: about to call flashloan executor; final%${finalRate.toFixed(5)};`);
+            let results = await PCKFlashloanExecutor.executeFlashloan(aSwapPair);
+            flog.debug(`STSS.refresh: flashloan executor called, results=${results}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
+
         }
     }
 
