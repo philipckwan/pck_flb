@@ -21,24 +21,7 @@ export class ParallelTwoSwapsStrategy extends Strategy {
     public twoSwapsArray:ITwoSwaps[] = [];
     public isBusy = false;
     private latestRateThreshold = 1.001;
-    //private swapRoutesList:ISwapRoutes[];
     private version:ParallelTwoSwapsStrategy.VERSION = ParallelTwoSwapsStrategy.VERSION.V1;
-
-    /*
-    public init(aSwapRoutesList:ISwapRoutes[]) {
-        if (this.isInited) {
-            let msg = `PTSS.init: WARN - already inited;`;
-            clog.warn(msg);
-            flog.warn(msg);
-        }
-        this.swapRoutesList = aSwapRoutesList;
-        let msg = `ParallelTwoSwapsStrategy(PTSS).init: v0.1; DONE;`;
-        clog.info(msg);
-        flog.info(msg);
-
-        this.isInited = true;
-    }
-    */
 
     public display():void {
         flog.debug(`PTSS.display: version:${ParallelTwoSwapsStrategy.VERSION[this.version]};`)

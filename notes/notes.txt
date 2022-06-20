@@ -32,3 +32,5 @@ DONE(v1.10)-reduce logging in PTSS v2, also log for the pair when displaying isO
 DONE(v1.11)-remove eth get gasPrice as I am not using it, rearrange the logging code in GasPriceCalculator
 DONE(v1.12)-increase the number of decimal point when logging prices to stats log file
 DONE(v1.13)-do not execute flashloan if gasprice is over the gasPriceLimit
+DONE(v1.14)-add isFlashloaning flag to stop multiple concurrent flashloan executions
+DONE(v1.14)-obsolete the serial strategy

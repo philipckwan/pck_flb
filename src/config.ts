@@ -77,9 +77,8 @@ class Config
 
         this.getGasPriceField = process.env.GET_GAS_PRICE_FIELD ? process.env.GET_GAS_PRICE_FIELD : "";
         this.isUseRecentGasPrice = process.env.IS_USE_RECENT_GAS_PRICE ? process.env.IS_USE_RECENT_GAS_PRICE  === "true": false;
-        this.twoSwapsStrategy = process.env.TWO_SWAPS_STRATEGY ? process.env.TWO_SWAPS_STRATEGY : "SERIAL";
-        //this.isParallelTwoSwapsStrategy = process.env.IS_PARALLEL_TWO_SWAPS_STRATEGY ? process.env.IS_PARALLEL_TWO_SWAPS_STRATEGY  === "true": false;
-
+        this.twoSwapsStrategy = process.env.TWO_SWAPS_STRATEGY ? process.env.TWO_SWAPS_STRATEGY : "PARALLEL_V2";
+        
         let msg = `Config.init: DONE;`;
         clog.info(msg);
         flog.info(msg);

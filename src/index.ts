@@ -9,7 +9,6 @@ import {PCKWeb3Handler} from "./utils/Web3Handler";
 import {PCKPriceV3} from "./uniswap/priceV3";
 import {Strategy} from "./strategy/Strategy";
 import {ParallelTwoSwapsStrategy} from "./strategy/ParallelTwoSwapsStrategy";
-import {SerialTwoSwapsStrategy} from "./strategy/SerialTwoSwapsStrategy";
 
 const flog=log4js.getLogger("file");
 const clog=log4js.getLogger("console");
@@ -43,7 +42,7 @@ export const main = async () => {
     //loggerTest();
     let testVal = process.env.TEST_KEY;
     let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
-    let msg = `index.main: v1.13; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v1.14; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
     clog.debug(msg);
     flog.debug(msg);
 
@@ -69,17 +68,11 @@ export const main = async () => {
       let versionStr = (PCKFLBConfig.twoSwapsStrategy === Strategy.MODE[Strategy.MODE.PARALLEL_V2]) ? ParallelTwoSwapsStrategy.VERSION.V2 : ParallelTwoSwapsStrategy.VERSION.V1;
       thisStrategy = new ParallelTwoSwapsStrategy(versionStr);
       await thisStrategy.initTwoSwapsArray(swapRoutesList);
-      //PCKParallelTwoSwapsStrategy.init(swapRoutesList);
-      /*
-      for (let i = 0; i < swapRoutesList.length; i++) {
-        let aSwapRoutes = swapRoutesList[i];
-        let bnLoanAmountUSDx = getBigNumber(PCKFLBConfig.loanAmountUSDx, aSwapRoutes.swapPairRoutes[0].fromToken.decimals);
-        await thisStrategy.addSwapPair(aSwapRoutes.swapPairRoutes[0], aSwapRoutes.swapPairRoutes[1], bnLoanAmountUSDx);
-        thisStrategy.printSwapPair(i);
-      }
-      */
     } else {
-      thisStrategy = new SerialTwoSwapsStrategy(swapRoutesList);
+      let msg = `index.main: ERROR - unknown strategy:${PCKFLBConfig.twoSwapsStrategy};`;
+      clog.error(msg);
+      flog.error(msg);
+      throw new Error(msg);
     }
     thisStrategy.display();
 

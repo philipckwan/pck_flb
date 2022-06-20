@@ -40,5 +40,5 @@ export abstract class Strategy {
 }
 
 export namespace Strategy {
-  export enum MODE {SERIAL, PARALLEL_V1, PARALLEL_V2}
+  export enum MODE {PARALLEL_V1, PARALLEL_V2}
 }

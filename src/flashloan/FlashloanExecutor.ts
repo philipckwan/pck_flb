@@ -23,6 +23,8 @@ const testedPools: testedPoolMap = {
 class FlashloanExecutor {
     private static _instance: FlashloanExecutor;
 
+    public isBusy = false;
+
     private constructor() {
     }
 
@@ -35,21 +37,16 @@ class FlashloanExecutor {
         return testedPools[borrowingToken.symbol][0];
     }
 
-    public async executeFlashloan(swapRoutes:ISwapRoutes):Promise<string> {
-        // currently assume swapRoutes only has 2 routes with 1 hop in each
-        if (swapRoutes.idxBestRouterToAmountList.length != 2) {
-          let msg = `FlEx.executeFlashloan: ERROR - currently only support swapRoutes.idxBestRouterToAmountList.length == 2; thisLength:${swapRoutes.idxBestRouterToAmountList.length};`;
-          clog.error(msg);
-          flog.error(msg);
-          return "ERROR";
-        } 
-        return this.executeFlashloanWithIdxs(swapRoutes, swapRoutes.idxBestRouterToAmountList[0], swapRoutes.idxBestRouterToAmountList[1]);
-    }
     public async executeFlashloanPair(firstSwap:ISwapPairRoutes, firstRouteIdx:number, secondSwap:ISwapPairRoutes, secondRouteIdx:number) : Promise<string> {
         if (PCKFLBConfig.remainingFlashloanTries <= 0) {
           flog.debug(`FlEx.executeFlashloanPair: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
           return "NOT EXECUTED";
         }
+        if (this.isBusy) {
+          flog.debug(`FlEx.executeFlashloanPair: will not execute flashloan, another flashloan is in progress;`);
+          return "BUSY";
+        }
+        this.isBusy = true;
         let firstFromToken = firstSwap.fromToken;
 
         let flashloanPool = this.getLendingPool(firstFromToken);
@@ -116,88 +113,8 @@ class FlashloanExecutor {
         flog.error(ex);
         results = "ERROR";
       }
+      this.isBusy = false;
       return results;
-    }
-
-    public async executeFlashloanWithIdxs(swapRoutes:ISwapRoutes, firstRouteIdx:number, secondRouteIdx:number) : Promise<string> {
-        if (PCKFLBConfig.remainingFlashloanTries <= 0) {
-          flog.debug(`FlEx.executeFlashloanWithIdxs: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
-          return "NOT EXECUTED";
-        }
-        //clog.debug(`FlEx.executeFlashloan: 1.0;`);
-        let tokenIn = swapRoutes.swapPairRoutes[0].fromToken;
-        let flashloanPool = this.getLendingPool(tokenIn);
-        let bnLoanAmount = getBigNumber(PCKFLBConfig.loanAmountUSDx, tokenIn.decimals);
-        //clog.debug(`FlEx: flashloanPool:${flashloanPool}; bnLoanAmount:${bnLoanAmount};`);
-        
-        let firstSwapPairRoutes = swapRoutes.swapPairRoutes[0];
-        let firstFromToken = firstSwapPairRoutes.fromToken;
-        let firstToToken = firstSwapPairRoutes.toToken;
-        let firstRoute = firstSwapPairRoutes.routerToAmountList[firstRouteIdx];
-        let firstRouteProtocol = firstRoute.router.protocol;
-
-        let secondSwapPairRoutes = swapRoutes.swapPairRoutes[1];
-        let secondFromToken = secondSwapPairRoutes.fromToken;
-        let secondToToken = secondSwapPairRoutes.toToken;
-        let secondRoute = secondSwapPairRoutes.routerToAmountList[secondRouteIdx];
-        let secondRouteProtocol = secondRoute.router.protocol;
-        
-        let params:IParams = {
-            flashLoanPool:flashloanPool,
-            loanAmount: bnLoanAmount,
-            firstRoutes:[],
-            secondRoutes:[]
-        }
-
-        let aFirstRoutes = this.toRoute(firstRouteProtocol, firstFromToken, firstToToken);
-        //let msg = `FlEx.executeFlashloan: aFirstRoutes:${JSON.stringify(aFirstRoutes)};`;
-        //clog.debug(msg);
-        //flog.debug(msg);
-        let aSecondRoutes = this.toRoute(secondRouteProtocol, secondFromToken, secondToToken);
-        //msg = `FlEx.executeFlashloan: aSecondRoutes:${JSON.stringify(aSecondRoutes)};`;
-        //clog.debug(msg);
-        //flog.debug(msg);
-        params.firstRoutes = aFirstRoutes;
-        params.secondRoutes = aSecondRoutes;
-
-        let executionGasPrice = await gasPriceCalculator.getGasPrice();
-        let gasPriceLimit = PCKFLBConfig.gasPriceLimit;
-
-        if (executionGasPrice > gasPriceLimit) {
-          flog.debug(`FlEx.executeFlashloanWithIdxs: gasPrice too high, will not execute flashloan; executionGasPrice:${executionGasPrice};`);
-          return "NOT EXECUTED";
-        }
-
-        flog.debug(`FlEx.executeFlashloanWithIdxs: about to flashloan...; executionGasPrice:${executionGasPrice};`);
-        /*
-        if (true) {
-          return "DEBUG";
-        }
-        */
-        const Flashloan = new ethers.Contract(
-            PCKFLBConfig.flashloanContractAddress,
-            FlashloanJson.abi,
-            PCKWeb3Handler.web3Provider
-        );
-        let results = "NEW";
-        try {
-          let tx = await Flashloan.connect(PCKWeb3Handler.web3Signer).dodoFlashLoan(params, {
-            gasLimit: PCKFLBConfig.gasLimit,
-            gasPrice: ethers.utils.parseUnits(`${executionGasPrice}`, "gwei"),
-            });
-          flog.debug(`FlEx.executeFlashloanWithIdxs: flashloan executed; tx.hash:${tx.hash};`);
-          PCKFLBConfig.remainingFlashloanTries--;
-          results = "EXECUTED";
-        } catch (ex) {
-          let msg = `FlEx.executeFlashloanWithIdxs: ERROR;`;
-          clog.error(msg);
-          flog.error(msg);
-          flog.error(ex);
-          results = "ERROR";
-        }
-        
-        return results;
-
     }
 
     private toRoute(protocol:number, fromToken:IToken, toToken:IToken) {
