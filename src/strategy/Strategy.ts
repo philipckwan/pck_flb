@@ -31,14 +31,16 @@ export abstract class Strategy {
 
   public abstract refreshAll():void;
 
-  public abstract refresh(idx:number):void;
+  //public abstract refresh(idx:number):void;
 
-  public abstract initTwoSwapsArray(aSwapPairList:ISwapRoutes[]):void;
+  //public abstract initTwoSwapsArray(aSwapPairList:ISwapRoutes[]):void;
   //public abstract addSwapPair(aFromSwap:ISwapPairRoutes, aToSwap:ISwapPairRoutes, fromSwapFromAmount:BigNumber):void;
+
+  public abstract init():void;
 
   public abstract printSwapPair(idx:number):void;
 }
 
 export namespace Strategy {
-  export enum MODE {PARALLEL_V1, PARALLEL_V2}
+  export enum MODE {PARALLEL_V2, PMTS_V1}
 }

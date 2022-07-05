@@ -1,7 +1,9 @@
 import * as log4js from "log4js";
-
 const flog = log4js.getLogger("file");
 const clog = log4js.getLogger("console");
+import {ERC20_TOKEN} from "./addresses";
+import {IToken, IRouter} from "./interfaces";
+import {parseRouterLists} from "./utility";
 
 class Config
 {
@@ -23,16 +25,17 @@ class Config
     public remainingFlashloanTries:number;
     public isInited:boolean = false;
     public polygonAPIKey:string;
-    public loanAmountUSDx:number;
     public flashloanExecutionThresholdUSDx:number;
     public privateKey:string;
     public web3RPCURL:string;
     public flashloanContractAddress:string;
     public getGasPriceField:string;
     public isUseRecentGasPrice:boolean;
-    //public isDecoupleFirstAndSecondRoutes:boolean;
-    //public isParallelTwoSwapsStrategy:boolean;
-    public twoSwapsStrategy:string;
+    public arbStrategy:string;
+    public baseToken:IToken;
+    public tradeTokens:IToken[] = [];
+    public routers:IRouter[] = [];
+
 
     public init() {
         if (this.isInited) {
@@ -68,7 +71,6 @@ class Config
         this.remainingFlashloanTries = process.env.MAX_NUM_SUCCESSFUL_FLASHLOAN ? parseInt(process.env.MAX_NUM_SUCCESSFUL_FLASHLOAN) : 0;
         this.polygonAPIKey = process.env.POLYGON_API_KEY ? process.env.POLYGON_API_KEY : "abcdefgh";
         
-        this.loanAmountUSDx = process.env.LOAN_AMOUNT_USDX ? parseInt(process.env.LOAN_AMOUNT_USDX) : 0;
         this.flashloanExecutionThresholdUSDx = process.env.FLASHLOAN_EXECUTE_THRESHOLD_USDX ? parseInt(process.env.FLASHLOAN_EXECUTE_THRESHOLD_USDX) : 10;
 
         this.web3RPCURL = process.env.WEB3_RPC_URL ? process.env.WEB3_RPC_URL : "";
@@ -77,7 +79,24 @@ class Config
 
         this.getGasPriceField = process.env.GET_GAS_PRICE_FIELD ? process.env.GET_GAS_PRICE_FIELD : "";
         this.isUseRecentGasPrice = process.env.IS_USE_RECENT_GAS_PRICE ? process.env.IS_USE_RECENT_GAS_PRICE  === "true": false;
-        this.twoSwapsStrategy = process.env.TWO_SWAPS_STRATEGY ? process.env.TWO_SWAPS_STRATEGY : "PARALLEL_V2";
+        this.arbStrategy = process.env.ARB_STRATEGY ? process.env.ARB_STRATEGY : "PARALLEL_V2";
+
+        let baseTokenStr = process.env.BASE_TOKEN ? process.env.BASE_TOKEN : "n/a";
+        let baseTokenStrSplit = baseTokenStr.split(":");
+        this.baseToken = ERC20_TOKEN[baseTokenStrSplit[0].toUpperCase()];
+        this.baseToken.amountForSwap = Number(baseTokenStrSplit[1]);
+
+        let tradeTokensStr = process.env.TRADE_TOKENS ? process.env.TRADE_TOKENS : "n/a";
+        let tradeTokensSplit = tradeTokensStr.split(",");
+        for (let i = 0; i < tradeTokensSplit.length; i++) {
+            let aTradeTokenStrSplit = tradeTokensSplit[i].split(":");
+            let aTradeToken = ERC20_TOKEN[aTradeTokenStrSplit[0].toUpperCase()];
+            aTradeToken.amountForSwap = Number(aTradeTokenStrSplit[1]);
+            this.tradeTokens.push(aTradeToken);
+        }
+
+        let routersListStr = process.env.ROUTERS_LIST ? process.env.ROUTERS_LIST : "";
+        this.routers = parseRouterLists(routersListStr);
         
         let msg = `Config.init: DONE;`;
         clog.info(msg);
@@ -86,16 +105,28 @@ class Config
         this.isInited = true;
     }
 
-    public logConfigs () {
-        let msg=`Config.logConfigs: v0.4; gasLimit:${this.gasLimit}; isAPIGetGasPrice:${this.isAPIGetGasPrice}; gasPriceMultiplier:${this.gasPriceMultiplier}; gasPriceAdder:${this.gasPriceAdder}; gasPriceLimit:${this.gasPriceLimit};`; 
+    public display () {
+        let msg=`Config.display: v0.4; gasLimit:${this.gasLimit}; isAPIGetGasPrice:${this.isAPIGetGasPrice}; gasPriceMultiplier:${this.gasPriceMultiplier}; gasPriceAdder:${this.gasPriceAdder}; gasPriceLimit:${this.gasPriceLimit};`; 
         clog.debug(msg);
         flog.debug(msg);
 
-        msg=`Config.logConfigs: remainingFlashloanTries:${this.remainingFlashloanTries}; polygonAPIKey:${this.polygonAPIKey}; loanAmountUSDx:${this.loanAmountUSDx}; flashloanExecutionThresholdUSDx:${this.flashloanExecutionThresholdUSDx};`;
+        msg=`Config.display: remainingFlashloanTries:${this.remainingFlashloanTries}; polygonAPIKey:${this.polygonAPIKey}; flashloanExecutionThresholdUSDx:${this.flashloanExecutionThresholdUSDx};`;
         clog.debug(msg);
         flog.debug(msg);
 
-        msg=`Config.logConfigs: twoSwapsStrategy:${this.twoSwapsStrategy}; web3RPCURL:${this.web3RPCURL}; privateKey(partial):${this.privateKey.substring(0,6)}...; flashloanContractAddress:${this.flashloanContractAddress};`;
+        msg=`Config.display: arbStrategy:${this.arbStrategy}; web3RPCURL:${this.web3RPCURL}; privateKey(partial):${this.privateKey.substring(0,6)}...; flashloanContractAddress:${this.flashloanContractAddress};`;
+        clog.debug(msg);
+        flog.debug(msg);
+
+        let tradeTokensLogStr = "";
+        for (let i = 0; i < this.tradeTokens.length; i++) {
+            let aTradeToken = this.tradeTokens[i];
+            tradeTokensLogStr += "[" + aTradeToken.symbol + ":" + aTradeToken.amountForSwap + "]";
+            if (i != this.tradeTokens.length - 1) {
+                tradeTokensLogStr += ",";
+            }
+        }
+        msg=`Config.display: baseToken:${this.baseToken.symbol}; baseTokenLoanAmount:$${this.baseToken.amountForSwap}; tradeTokens:${tradeTokensLogStr};`; 
         clog.debug(msg);
         flog.debug(msg);
     }

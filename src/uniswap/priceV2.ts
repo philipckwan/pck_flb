@@ -13,7 +13,6 @@ export const getPriceOnUniV2 = async (
     amountIn: BigNumber,
     routerAddress: string
     ): Promise<BigNumber> => {
-    //clog.debug(`priceV2.getPriceOnUniV2: 1.0;`);
     let v2Router = new ethers.Contract(
         routerAddress,
         UniswapV2Router.abi,

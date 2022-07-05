@@ -9,6 +9,8 @@ import {PCKWeb3Handler} from "./utils/Web3Handler";
 import {PCKPriceV3} from "./uniswap/priceV3";
 import {Strategy} from "./strategy/Strategy";
 import {ParallelTwoSwapsStrategy} from "./strategy/ParallelTwoSwapsStrategy";
+import {ParallelMultiTradesStrategy} from "./strategy/ParallelMultiTradesStrategy";
+import { ISwapRoutes } from "./interfaces";
 
 const flog=log4js.getLogger("file");
 const clog=log4js.getLogger("console");
@@ -42,34 +44,34 @@ export const main = async () => {
     //loggerTest();
     let testVal = process.env.TEST_KEY;
     let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
-    let msg = `index.main: v1.14; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v2.2; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
     clog.debug(msg);
     flog.debug(msg);
 
     PCKFLBConfig.init();
-    PCKFLBConfig.logConfigs();
+    PCKFLBConfig.display();
 
     PCKWeb3Handler.init();
     PCKPriceV3.init();    
 
     gasPriceCalculator.init();
-    gasPriceCalculator.logConfigs();
+    gasPriceCalculator.display();
 
-    let routersListStr = process.env.ROUTERS_LIST ? process.env.ROUTERS_LIST : "";
-    let routersList = parseRouterLists(routersListStr);
-
-    let swapRouteListStr = process.env.SWAP_ROUTE_LIST ? process.env.SWAP_ROUTE_LIST : "";
-    let swapRoutesList = parseSwapLists(swapRouteListStr, routersList, PCKFLBConfig.loanAmountUSDx);
-
-    
     let thisStrategy:Strategy;
+    //let swapRoutesList:ISwapRoutes[] = [];
 
-    if (PCKFLBConfig.twoSwapsStrategy === Strategy.MODE[Strategy.MODE.PARALLEL_V1] || PCKFLBConfig.twoSwapsStrategy === Strategy.MODE[Strategy.MODE.PARALLEL_V2]) {
-      let versionStr = (PCKFLBConfig.twoSwapsStrategy === Strategy.MODE[Strategy.MODE.PARALLEL_V2]) ? ParallelTwoSwapsStrategy.VERSION.V2 : ParallelTwoSwapsStrategy.VERSION.V1;
-      thisStrategy = new ParallelTwoSwapsStrategy(versionStr);
-      await thisStrategy.initTwoSwapsArray(swapRoutesList);
+    if (PCKFLBConfig.arbStrategy === Strategy.MODE[Strategy.MODE.PARALLEL_V2]) {
+      let swapRouteListStr = process.env.SWAP_ROUTE_LIST ? process.env.SWAP_ROUTE_LIST : "";
+      let swapRoutesList = parseSwapLists(swapRouteListStr, PCKFLBConfig.routers, PCKFLBConfig.baseToken.amountForSwap);
+      let ptss = new ParallelTwoSwapsStrategy();
+      //thisStrategy = new ParallelTwoSwapsStrategy();
+      await ptss.initTwoSwapsArray(swapRoutesList);
+      thisStrategy = ptss;
+    } else if (PCKFLBConfig.arbStrategy === Strategy.MODE[Strategy.MODE.PMTS_V1]) {
+      thisStrategy = new ParallelMultiTradesStrategy()
+      thisStrategy.init();
     } else {
-      let msg = `index.main: ERROR - unknown strategy:${PCKFLBConfig.twoSwapsStrategy};`;
+      let msg = `index.main: ERROR - unknown strategy:${PCKFLBConfig.arbStrategy};`;
       clog.error(msg);
       flog.error(msg);
       throw new Error(msg);
@@ -78,14 +80,10 @@ export const main = async () => {
 
     //log4js.shutdown(function() { process.exit(1); });
 
-    for (let i = 0; i < swapRoutesList.length; i++) { //let aSwapRoutes of swapRoutesList) {      
-      const func = async () => {
-        thisStrategy.refresh(i);
-      }
-      //func();  
-      setInterval(func, pollIntervalMSec);
+    const func = async () => {
+      thisStrategy.refreshAll();
     }
-    
+    setInterval(func, pollIntervalMSec);    
     console.log("index.main: END;");
 };
 

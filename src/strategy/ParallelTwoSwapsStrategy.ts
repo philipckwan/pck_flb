@@ -1,9 +1,9 @@
 import * as log4js from "log4js";
 const flog = log4js.getLogger("file");
 const clog = log4js.getLogger("console");
-import {ITwoSwaps, ISwapPairRoutes, IRouterToAmount, IToAmountAndRate, ISwapRoutes, ISwap} from "../interfaces";
+import {ITwoSwaps, ISwapPairRoutes, IRouterToAmount, IToRate, ISwapRoutes, ISwap} from "../interfaces";
 import {BigNumber, ethers} from "ethers";
-import {getSwapAmountAndRate} from "../uniswap/uniswapPrice"
+import {getSwapRate} from "../uniswap/uniswapPrice"
 import {PCKFlashloanExecutor} from "../flashloan/FlashloanExecutor";
 import {PCKFLBConfig} from "../config";
 import {Strategy} from "./Strategy";
@@ -13,31 +13,39 @@ import {getBigNumber, formatTime} from "../utility";
 
 export class ParallelTwoSwapsStrategy extends Strategy {
 
-    public constructor(aVersion:ParallelTwoSwapsStrategy.VERSION) {
+
+    public constructor() {
         super("ParallelTwoSwapsStrategy");
-        this.version = aVersion;
     }
 
+    public swapRouteList:ISwapRoutes[] = []
     public twoSwapsArray:ITwoSwaps[] = [];
     public isBusy = false;
     private latestRateThreshold = 1.001;
-    private version:ParallelTwoSwapsStrategy.VERSION = ParallelTwoSwapsStrategy.VERSION.V1;
 
     public display():void {
-        flog.debug(`PTSS.display: version:${ParallelTwoSwapsStrategy.VERSION[this.version]};`)
+        flog.debug(`PTSS.display: 2.0;`)
         super.display();
     }
 
     public refreshAll():void {
+        for (let i = 0; i < this.swapRouteList.length; i++) {
+            this.refresh(i);
+        }
+    }
 
+    public init(): void {
+        throw new Error("Method not implemented.");
     }
 
     public async initTwoSwapsArray(aSwapPairList:ISwapRoutes[]) {
+        this.swapRouteList = aSwapPairList;
         flog.debug(`PTSS.initTwoSwapsArray: 1.0;`)
         for (let i = 0; i < aSwapPairList.length; i++) {
             let aSwapRoutes = aSwapPairList[i];
-            let bnLoanAmountUSDx = getBigNumber(PCKFLBConfig.loanAmountUSDx, aSwapRoutes.swapPairRoutes[0].fromToken.decimals);
-            await this.addSwapPair(aSwapRoutes.swapPairRoutes[0], aSwapRoutes.swapPairRoutes[1], bnLoanAmountUSDx);
+            let bnLoanAmount = getBigNumber(PCKFLBConfig.baseToken.amountForSwap, aSwapRoutes.swapPairRoutes[0].fromToken.decimals);
+            flog.debug(`__bnLoanAmount:${bnLoanAmount};`);
+            await this.addSwapPair(aSwapRoutes.swapPairRoutes[0], aSwapRoutes.swapPairRoutes[1], bnLoanAmount);
             this.printSwapPair(i);
         }
     }
@@ -55,9 +63,8 @@ export class ParallelTwoSwapsStrategy extends Strategy {
         for (let i = 0; i < aTwoSwaps.fromSwap.routerToAmountList.length; i++) {
             let aRouteToAmount = aTwoSwaps.fromSwap.routerToAmountList[i];
             try {
-              let amountAndRate = await getSwapAmountAndRate(aTwoSwaps.fromSwap.fromToken, aTwoSwaps.fromSwap.toToken, aRouteToAmount.router, aTwoSwaps.fromSwap.fromAmount);
-              aRouteToAmount.toFromRate = amountAndRate.toFromRate;
-              aRouteToAmount.toAmount = amountAndRate.toAmount;             
+              let amountAndRate = await getSwapRate(aTwoSwaps.fromSwap.fromToken, aTwoSwaps.fromSwap.toToken, aRouteToAmount.router);
+              aRouteToAmount.toFromRate = amountAndRate.toFromRate;           
             } catch (e) {
               flog.error(`PTSS.addSwapPair: ERROR - 1;`);
               aRouteToAmount.toFromRate = 0;
@@ -66,13 +73,12 @@ export class ParallelTwoSwapsStrategy extends Strategy {
         aTwoSwaps.fromWinnerIdx = this.findWinnerIdx(aTwoSwaps.fromSwap.routerToAmountList);
 
         flog.debug(`PTSS.addSwapPair: initializing toSwap...`);
-        aTwoSwaps.toSwap.fromAmount = aTwoSwaps.fromSwap.routerToAmountList[aTwoSwaps.fromWinnerIdx].toAmount;
+        aTwoSwaps.toSwap.fromAmount = getBigNumber(aTwoSwaps.toSwap.fromToken.amountForSwap, aTwoSwaps.toSwap.fromToken.decimals);
         for (let i = 0; i < aTwoSwaps.toSwap.routerToAmountList.length; i++) {
             let aRouteToAmount = aTwoSwaps.toSwap.routerToAmountList[i];
             try {
-              let amountAndRate = await getSwapAmountAndRate(aTwoSwaps.toSwap.fromToken, aTwoSwaps.toSwap.toToken, aRouteToAmount.router, aTwoSwaps.toSwap.fromAmount);
-              aRouteToAmount.toFromRate = amountAndRate.toFromRate;
-              aRouteToAmount.toAmount = amountAndRate.toAmount;             
+              let amountAndRate = await getSwapRate(aTwoSwaps.toSwap.fromToken, aTwoSwaps.toSwap.toToken, aRouteToAmount.router);
+              aRouteToAmount.toFromRate = amountAndRate.toFromRate;       
             } catch (e) {
               flog.error(`PTSS.addSwapPair: ERROR - 2;`);
               aRouteToAmount.toFromRate = 0;
@@ -83,26 +89,18 @@ export class ParallelTwoSwapsStrategy extends Strategy {
     }
 
     public async refresh(idx:number) {
-        if (this.version == ParallelTwoSwapsStrategy.VERSION.V2) {
-            return this.refreshV2(idx);
-        } else {
-            return this.refreshV1(idx);
-        }
-    }
-
-    public async refreshV2(idx:number) {
-        //flog.debug(`PTSS.refreshV2: START; idx:${idx};`);
+        //flog.debug(`PTSS.refresh: START; idx:${idx};`);
         this.isBusy = true;
         let aTwoSwaps = this.twoSwapsArray[idx];
 
         let allSwapPromises = [];
         let startTime = Date.now();
         for (let aRTA of aTwoSwaps.fromSwap.routerToAmountList) {
-            let promANewAmountAndRate = getSwapAmountAndRate(aTwoSwaps.fromSwap.fromToken, aTwoSwaps.fromSwap.toToken, aRTA.router, aTwoSwaps.fromSwap.fromAmount, aRTA.idx, true);
+            let promANewAmountAndRate = getSwapRate(aTwoSwaps.fromSwap.fromToken, aTwoSwaps.fromSwap.toToken, aRTA.router, aRTA.idx, true);
             allSwapPromises.push(promANewAmountAndRate);
         }
         for (let aRTA of aTwoSwaps.toSwap.routerToAmountList) {
-            let promANewAmountAndRate = getSwapAmountAndRate(aTwoSwaps.toSwap.fromToken, aTwoSwaps.toSwap.toToken, aRTA.router, aTwoSwaps.toSwap.fromAmount, aRTA.idx, false);
+            let promANewAmountAndRate = getSwapRate(aTwoSwaps.toSwap.fromToken, aTwoSwaps.toSwap.toToken, aRTA.router, aRTA.idx, false);
             allSwapPromises.push(promANewAmountAndRate);
         }
         Promise.all(allSwapPromises).then(async (newAmountAndRates) => {
@@ -133,74 +131,15 @@ export class ParallelTwoSwapsStrategy extends Strategy {
             let isOpp = newFinalRate > this.latestRateThreshold;
             let fromBestRouter = aTwoSwaps.fromSwap.routerToAmountList[fromWinnerIdx].router.name;
             let toBestRouter = aTwoSwaps.toSwap.routerToAmountList[toWinnerIdx].router.name;
-            flog.debug(`PTSS.refreshV2: isOpp:${isOpp};final%:${newFinalRate.toFixed(6)};T:[${timeDiff}|${formatTime(startTime)}->${formatTime(endTime)}];[${aTwoSwaps.fromSwap.fromToken.symbol}:${aTwoSwaps.toSwap.fromToken.symbol}];[${fromBestRouter}:${fromMaxRate.toFixed(6)}]->[${toBestRouter}:${toMaxRate.toFixed(6)}];`);
+            flog.debug(`PTSS.refresh: isOpp:${isOpp};final%:${newFinalRate.toFixed(6)};T:[${timeDiff}|${formatTime(startTime)}->${formatTime(endTime)}];[${aTwoSwaps.fromSwap.fromToken.symbol}:${aTwoSwaps.toSwap.fromToken.symbol}];[${fromBestRouter}:${fromMaxRate.toFixed(6)}]->[${toBestRouter}:${toMaxRate.toFixed(6)}];`);
 
             if (isOpp) {
-                flog.debug(`PTSS.refreshV2: about to call flashloan executor;`);
+                flog.debug(`PTSS.refresh: about to call flashloan executor;`);
                 let results = await PCKFlashloanExecutor.executeFlashloanPair(aTwoSwaps.fromSwap, fromWinnerIdx, aTwoSwaps.toSwap, toWinnerIdx);
-                flog.debug(`PTSS.refreshV2: flashloan executor called, results=${results}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
+                flog.debug(`PTSS.refresh: flashloan executor called, results=${results}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
             }
             this.isBusy = false;
         });
-    }
-
-    public async refreshV1(idx:number) {
-        //flog.debug(`PTSS.refreshV1: START; idx:${idx};`);
-        this.isBusy = true;
-        let aTwoSwaps = this.twoSwapsArray[idx];
-
-        let fromSwapPromises = [];
-        let startTime = Date.now();
-        for (let aRTA of aTwoSwaps.fromSwap.routerToAmountList) {
-            let promANewAmountAndRate = getSwapAmountAndRate(aTwoSwaps.fromSwap.fromToken, aTwoSwaps.fromSwap.toToken, aRTA.router, aTwoSwaps.fromSwap.fromAmount);
-            fromSwapPromises.push(promANewAmountAndRate);
-        }
-        Promise.all(fromSwapPromises).then((newAmountAndRates) => {
-            let fromMaxRate = 0;
-            let fromWinnerIdx = 0;
-            for (let i = 0; i < newAmountAndRates.length; i++) {
-                let aNewAmountAndRate = newAmountAndRates[i];
-                if (aNewAmountAndRate.toFromRate > fromMaxRate) {
-                    fromWinnerIdx = i;
-                    fromMaxRate = aNewAmountAndRate.toFromRate;
-                }
-            }
-            //flog.debug(`PTSS.refresh: fromSwap: fromWinner:${aTwoSwaps.fromSwap.routerToAmountList[fromWinnerIdx].router.name}; fromMaxRate:${fromMaxRate.toFixed(6)};`);
-            let toSwapPromises = [];
-            for (let aRTA of aTwoSwaps.toSwap.routerToAmountList) {
-                let promANewAmountAndRate = getSwapAmountAndRate(aTwoSwaps.toSwap.fromToken, aTwoSwaps.toSwap.toToken, aRTA.router, aTwoSwaps.toSwap.fromAmount);
-                toSwapPromises.push(promANewAmountAndRate);
-            }
-            Promise.all(toSwapPromises).then(async (newAmountAndRates) => {
-                let toMaxRate = 0;
-                let toWinnerIdx = 0;
-                for (let i = 0; i < newAmountAndRates.length; i++) {
-                    let aNewAmountAndRate = newAmountAndRates[i];
-                    //flog.debug(`PTSS.refresh: toSwap: aNAAR[${i}].toFromRate:${aNewAmountAndRate.toFromRate.toFixed(6)};`);
-                    if (aNewAmountAndRate.toFromRate > toMaxRate) {
-                        toWinnerIdx = i;
-                        toMaxRate = aNewAmountAndRate.toFromRate;
-                    }
-                }
-                //flog.debug(`PTSS.refresh: toSwap: toWinner:${aTwoSwaps.toSwap.routerToAmountList[toWinnerIdx].router.name}; toMaxRate:${toMaxRate.toFixed(6)};`);
-                let endTime = Date.now();
-                let timeDiff = (endTime - startTime) / 1000;
-                let newFinalRate = fromMaxRate * toMaxRate;
-                let isOpp = newFinalRate > this.latestRateThreshold;
-                let fromBestRouter = aTwoSwaps.fromSwap.routerToAmountList[fromWinnerIdx].router.name;
-                let toBestRouter = aTwoSwaps.toSwap.routerToAmountList[toWinnerIdx].router.name;
-                //flog.debug(`PTSS.refreshV1: isOpp:${isOpp}; newFinal%:${newFinalRate.toFixed(6)}; [${fromBestRouter}:${fromMaxRate.toFixed(6)}]->[${toBestRouter}:${toMaxRate.toFixed(6)}]; T:[${formatTime(startTime)}->${formatTime(endTime)}(${timeDiff})];`);
-                flog.debug(`PTSS.refreshV1: isOpp:${isOpp};final%:${newFinalRate.toFixed(6)};T:[${timeDiff}|${formatTime(startTime)}->${formatTime(endTime)}];[${aTwoSwaps.fromSwap.fromToken.symbol}:${aTwoSwaps.toSwap.fromToken.symbol}];[${fromBestRouter}:${fromMaxRate.toFixed(6)}]->[${toBestRouter}:${toMaxRate.toFixed(6)}];`);
-
-                if (isOpp) {
-                    flog.debug(`PTSS.refreshV1: about to call flashloan executor;`);
-                    let results = await PCKFlashloanExecutor.executeFlashloanPair(aTwoSwaps.fromSwap, fromWinnerIdx, aTwoSwaps.toSwap, toWinnerIdx);
-                    flog.debug(`PTSS.refreshV1: flashloan executor called, results=${results}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
-                }
-                this.isBusy = false;
-            });
-        });
-
     }
 
     public getFinalRate(idx:number):number {
@@ -228,8 +167,7 @@ export class ParallelTwoSwapsStrategy extends Strategy {
         flog.debug(`_fromSwap:[${aTwoSwaps.fromSwap.fromToken.symbol}->${aTwoSwaps.fromSwap.toToken.symbol}]; $:${nFromAmount.toFixed(4)}; fw:${aTwoSwaps.fromWinnerIdx};`);
         for (let i = 0; i < aTwoSwaps.fromSwap.routerToAmountList.length; i++) {
             let aRTA = aTwoSwaps.fromSwap.routerToAmountList[i];
-            let nToAmount = Number(ethers.utils.formatUnits(aRTA.toAmount, aTwoSwaps.fromSwap.toToken.decimals));
-            let msg = `__@:${aRTA.router.name.padStart(18)}; $:${nToAmount.toFixed(4).padStart(10)}; %:${aRTA.toFromRate.toFixed(8)};`;
+            let msg = `__@:${aRTA.router.name.padStart(18)}; %:${aRTA.toFromRate.toFixed(8)};`;
             if (i == aTwoSwaps.fromWinnerIdx) {
                 msg += `<--winner;`;
             }
@@ -239,8 +177,7 @@ export class ParallelTwoSwapsStrategy extends Strategy {
         flog.debug(`_toSwap:[${aTwoSwaps.toSwap.fromToken.symbol}->${aTwoSwaps.toSwap.toToken.symbol}]; $:${nFromAmount.toFixed(4)}; tw:${aTwoSwaps.toWinnerIdx};`);
         for (let i = 0; i < aTwoSwaps.toSwap.routerToAmountList.length; i++) {
             let aRTA = aTwoSwaps.toSwap.routerToAmountList[i];
-            let nToAmount = Number(ethers.utils.formatUnits(aRTA.toAmount, aTwoSwaps.toSwap.toToken.decimals));
-            let msg = `__@:${aRTA.router.name.padStart(18)}; $:${nToAmount.toFixed(4).padStart(10)}; %:${aRTA.toFromRate.toFixed(8)};`;
+            let msg = `__@:${aRTA.router.name.padStart(18)}; %:${aRTA.toFromRate.toFixed(8)};`;
             if (i == aTwoSwaps.toWinnerIdx) {
                 msg += `<--winner;`;
             }
@@ -251,6 +188,8 @@ export class ParallelTwoSwapsStrategy extends Strategy {
 
 }
 //export const PCKParallelTwoSwapsStrategy = ParallelTwoSwapsStrategy.Instance;
+/*
 export namespace ParallelTwoSwapsStrategy {
     export enum VERSION {V1, V2}
 }
+*/

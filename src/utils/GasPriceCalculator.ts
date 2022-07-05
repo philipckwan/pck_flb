@@ -187,8 +187,8 @@ class GasPriceCalculator {
         //flog.debug(`GasPriceCalculator.doAPollGasPrice: safe:${this.gasPriceRecentPolygonSafe}; propose:${this.gasPriceRecentPolygonPropose}; fast:${this.gasPriceRecentPolygonFast}: ethers:${this.gasPriceRecentEthers};`);
     }
 
-    public logConfigs () {
-        let msg = `GasPriceCalculator.logConfigs: v0.1; polygonAPIUrl:${this.polygonAPIUrl};`;
+    public display () {
+        let msg = `GasPriceCalculator.display: v0.1; polygonAPIUrl:${this.polygonAPIUrl};`;
         clog.debug(msg);
         flog.debug(msg);
     }

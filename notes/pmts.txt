@@ -1,0 +1,70 @@
+
+-a new strategy: parallel multi trade strategy (PMTS)
+ v-a base token (e.g. usdc)
+ v-one or more trade tokens (e.g. wmatic, weth)
+ -the oppCheck combinations (a trade) will then be:
+  -usdc:wmatic:usdc
+  -usdc:weth:usdc
+  -usdc:wmatic:weth:usdc
+  -usdc:weth:wmatic:usdc
+ -implications
+  -from a parallel two swap to parallel 2 combo trades, assume test 3 swaps (uniswapV3, quickswap, sushiswap)
+   -PTSS (i.e. usdc:wmatic:usdc)
+    -2 hops x 3 swaps = 6 API calls
+   -PMTS (i.e. base:usdc; trade:wmatic,weth)
+    -6 hops x 3 swaps = 18 API calls
+    -6 hops:
+     -usdc:wmatic
+     -wmatic:usdc
+     -usdc:weth
+     -weth:usdc
+     -wmatic:weth
+     -weth:wmatic
+    -the results of the 6 hops oppCheck can be reused to calculate for trade such as usdc:wmatic:weth:usdc (reusing usdc:wmatic and weth:usdc)
+ -firstly
+  -need to get the basic return amount at program start, in order to get the ration
+   -i.e. 10000 usdc to x wmatic, y weth
+ -then calculate which trade has profit
+ -then construct the flashloan call
+ -remember to use the newer flashloan contract
+ -but need to enhance to support 3 swaps, previously can only do 2 swaps
+
+-a sample usdc:weth:wmatic:usdc flashloan
+{
+  "flashLoanPool": "0x5333Eb1E32522F1893B7C9feA3c263807A02d561",
+  "loanAmount": {
+    "type": "BigNumber",
+    "hex": "0x02540be400"
+  },
+  "routes": [
+    {
+      "hops": [
+        {
+          "protocol": 0,
+          "data": "0x000000000000000000000000e592427a0aece92de3edee1f18e0157c0586156400000000000000000000000000000000000000000000000000000000000001f4",
+          "path": [
+            "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+            "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619"
+          ]
+        },
+        {
+          "protocol": 2,
+          "data": "0x000000000000000000000000a5e0829caced8ffdd4de3c43696c57f7d7a678ff",
+          "path": [
+            "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+            "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
+          ]
+        },
+        {
+          "protocol": 0,
+          "data": "0x000000000000000000000000e592427a0aece92de3edee1f18e0157c0586156400000000000000000000000000000000000000000000000000000000000001f4",
+          "path": [
+            "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+            "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
+          ]
+        }
+      ],
+      "part": 10000
+    }
+  ]
+}

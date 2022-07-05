@@ -34,3 +34,5 @@ DONE(v1.12)-increase the number of decimal point when logging prices to stats lo
 DONE(v1.13)-do not execute flashloan if gasprice is over the gasPriceLimit
 DONE(v1.14)-add isFlashloaning flag to stop multiple concurrent flashloan executions
 DONE(v1.14)-obsolete the serial strategy
+-seems to have issue with flashloan stuck at executing, subsequent flashloan not able to execute even after long time
+DONE(v2.2)-a new strategy: parallel multi trades strategy (PMTS)

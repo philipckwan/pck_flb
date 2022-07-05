@@ -60,7 +60,7 @@ export const parseSwapLists = (swapRoutesListStr:string, routers:IRouter[], loan
   
           for (let i = 0; i < routers.length; i++) { //let aRouter of routers) {
             let aRouter = routers[i];
-            aSwapPairRoutes.routerToAmountList.push({idx:i, router:aRouter, toAmount:getBigNumber(0), toFromRate:0});
+            aSwapPairRoutes.routerToAmountList.push({idx:i, router:aRouter, toFromRate:0});
           }
           // initialize the first pair's loan amount to loanAmountUSDx
           if (i == 0){
@@ -79,15 +79,13 @@ export const printSwapRoutes = (aSwapRoutes:ISwapRoutes) => {
       let fromAmountFixed = ethers.utils.formatUnits(aSwapPairRoutes.fromAmount,aSwapPairRoutes.fromToken.decimals);
       clog.debug(`--aSwapPairRoutes: ${aSwapPairRoutes.fromToken.symbol} -> ${aSwapPairRoutes.toToken.symbol}; $:${fromAmountFixed};`);
       for (let aRouterToAmount of aSwapPairRoutes.routerToAmountList) {
-        let toAmountFixed = ethers.utils.formatUnits(aRouterToAmount.toAmount,aSwapPairRoutes.toToken.decimals);
-        clog.debug(`----aRouter:${aRouterToAmount.router.name}; to$:${toAmountFixed}; rate:${aRouterToAmount.toFromRate.toFixed(4)};`);
+        clog.debug(`----aRouter:${aRouterToAmount.router.name}; %:${aRouterToAmount.toFromRate.toFixed(4)};`);
       }
     }
     for (let i = 0; i < aSwapRoutes.idxBestRouterToAmountList.length; i++) {
       let idxBestRouterToAmount = aSwapRoutes.idxBestRouterToAmountList[i];
       let aBestRouterToAmount = aSwapRoutes.swapPairRoutes[i].routerToAmountList[idxBestRouterToAmount];
-      let aBestToAmountFixed = ethers.utils.formatUnits(aBestRouterToAmount.toAmount,aSwapRoutes.swapPairRoutes[i].toToken.decimals);
-      clog.debug(`--bestRouter[${i}]:${aBestRouterToAmount.router.name}; to$:${aBestToAmountFixed}; rate:${aBestRouterToAmount.toFromRate};`);
+      clog.debug(`--bestRouter[${i}]:${aBestRouterToAmount.router.name}; %:${aBestRouterToAmount.toFromRate};`);
     }
     clog.debug(`utility.printSwapRoutes: END;`);
 }
@@ -102,6 +100,7 @@ export const getSwapsStrings = (aSwapRoutes:ISwapRoutes) : string => {
   return result;
 }
 
+/*
 export const compareSwap = (aSwapRoutes:ISwapRoutes) : [diffAmount:number, diffPct:number] => {
   let originalAmount = Number(ethers.utils.formatUnits(aSwapRoutes.swapPairRoutes[0].fromAmount,aSwapRoutes.swapPairRoutes[0].fromToken.decimals));
   //let finalRoute = aSwapRoutes.swapPairRoutes[aSwapRoutes.swapPairRoutes.length-1];
@@ -116,3 +115,4 @@ export const compareSwap = (aSwapRoutes:ISwapRoutes) : [diffAmount:number, diffP
 
   return [diffAmount, diffPct];
 }
+*/
