@@ -10,7 +10,7 @@ import {PCKPriceV3} from "./uniswap/priceV3";
 import {Strategy} from "./strategy/Strategy";
 import {ParallelTwoSwapsStrategy} from "./strategy/ParallelTwoSwapsStrategy";
 import {ParallelMultiTradesStrategy} from "./strategy/ParallelMultiTradesStrategy";
-import { ISwapRoutes } from "./interfaces";
+import {PCKFlashloanExecutor} from "./flashloan/FlashloanExecutor";
 
 const flog=log4js.getLogger("file");
 const clog=log4js.getLogger("console");
@@ -44,7 +44,7 @@ export const main = async () => {
     //loggerTest();
     let testVal = process.env.TEST_KEY;
     let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
-    let msg = `index.main: v2.3; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v2.4; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
     clog.debug(msg);
     flog.debug(msg);
 
@@ -56,6 +56,8 @@ export const main = async () => {
 
     gasPriceCalculator.init();
     gasPriceCalculator.display();
+
+    PCKFlashloanExecutor.init();
 
     let thisStrategy:Strategy;
     //let swapRoutesList:ISwapRoutes[] = [];

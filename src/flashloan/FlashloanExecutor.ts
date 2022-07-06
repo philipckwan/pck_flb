@@ -25,6 +25,7 @@ class FlashloanExecutor {
     private static _instance: FlashloanExecutor;
 
     public isBusy = false;
+    private connectedFlashloanContract:ethers.Contract;
 
     private constructor() {
     }
@@ -32,6 +33,16 @@ class FlashloanExecutor {
     public static get Instance() {
         // Do you need arguments? Make it a regular static method instead.
         return this._instance || (this._instance = new this());
+    }
+
+    public init() {
+      let flashloanContract = new ethers.Contract(
+        PCKFLBConfig.flashloanContractAddress,
+        FlashloanJsonV2.abi,
+        PCKWeb3Handler.web3Provider
+      );
+      this.connectedFlashloanContract = flashloanContract.connect(PCKWeb3Handler.web3Signer);
+      flog.debug(`FlEx.init: done;`);
     }
 
     private getLendingPool(borrowingToken: IToken) {
@@ -76,11 +87,7 @@ class FlashloanExecutor {
         routes: this.passRoutes(trade.hops),
       };
 
-      const Flashloan = new ethers.Contract(
-        PCKFLBConfig.flashloanContractAddress,
-        FlashloanJsonV2.abi,
-        PCKWeb3Handler.web3Provider
-      );
+
 
       let executionGasPrice = await gasPriceCalculator.getGasPrice();
       let bnExecutionGasPrice = ethers.utils.parseUnits(`${executionGasPrice}`, "gwei");
@@ -89,13 +96,11 @@ class FlashloanExecutor {
         return ["NOT EXECUTED", txHash];
       }
 
-      flog.debug(`FlEx.executeFlashloanTrade: about to flashloan...; executionGasPrice:${executionGasPrice};`);
+      flog.debug(`FlEx.executeFlashloanTrade: about to flashloan (v2)...; executionGasPrice:${executionGasPrice};`);
       let results = "NEW";
       
       try {
-        let connectedFlashloanContract = Flashloan.connect(PCKWeb3Handler.web3Signer);
-        flog.debug(`FlEx.executeFlashloanTrade: connectedFlashloanContract ready;`);
-        let tx = await connectedFlashloanContract.dodoFlashLoan(params, {
+        let tx = await this.connectedFlashloanContract.dodoFlashLoan(params, {
           gasLimit: PCKFLBConfig.gasLimit,
           gasPrice: bnExecutionGasPrice,
           });
@@ -163,20 +168,11 @@ class FlashloanExecutor {
         return "NOT EXECUTED";
       }
 
-      flog.debug(`FlEx.executeFlashloanPair: about to flashloan...; executionGasPrice:${executionGasPrice};`);
-      /*
-      if (true) {
-        return "DEBUG";
-      }
-      */
-      const Flashloan = new ethers.Contract(
-          PCKFLBConfig.flashloanContractAddress,
-          FlashloanJson.abi,
-          PCKWeb3Handler.web3Provider
-      );
+      flog.debug(`FlEx.executeFlashloanPair: about to flashloan (v2)...; executionGasPrice:${executionGasPrice};`);
+
       let results = "NEW";
       try {
-        let tx = await Flashloan.connect(PCKWeb3Handler.web3Signer).dodoFlashLoan(params, {
+        let tx = await this.connectedFlashloanContract.connect(PCKWeb3Handler.web3Signer).dodoFlashLoan(params, {
           gasLimit: PCKFLBConfig.gasLimit,
           gasPrice: ethers.utils.parseUnits(`${executionGasPrice}`, "gwei"),
           });

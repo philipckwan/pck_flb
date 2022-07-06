@@ -37,7 +37,7 @@ DONE(v1.14)-obsolete the serial strategy
 -seems to have issue with flashloan stuck at executing, subsequent flashloan not able to execute even after long time
 DONE(v2.2)-a new strategy: parallel multi trades strategy (PMTS)
 DONE(v2.3)-split the flashloan connect contract and execute contract, for further timing analysis
--should consider to connect the flashloan contract once at init time if allowed
+DONE(v2.4)-should consider to connect the flashloan contract once at init time if allowed
 -investigate if can improve the performance between isOpp:true and flashloan execution
 -if during flashloan but before return, if isOpp:false, can i cancel the flashloan in progress?
 -need to resolve the conflict if 2 trades are detected; see "0x2589306e7a613998bfb655a05347aa220206314ecedf9f405480056afeeeef57" and "0xfd753e5d867520e637e1a60d7fee0bba1e05329607cdfe99a70165084cb31d2c"
