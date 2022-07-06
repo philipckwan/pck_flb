@@ -230,19 +230,20 @@ export class ParallelMultiTradesStrategy extends Strategy {
                     rateForThisTrade *= thisTrade.hops[j].maxRate;
                 }
                 let isProfit = rateForThisTrade > this.isProfitRate;
-                flog.debug(`PMTS.refreshAll: isPft:${isProfit}; %:${rateForThisTrade}; trade:${hopsStr};`);
+                flog.debug(`PMTS.refreshAll: isPft:${isProfit}; %:${rateForThisTrade.toFixed(6)}; trade:${hopsStr};`);
                 if (isProfit) {
                     flog.debug(`PMTS.refreshAll: will execute flashloan for ${hopsStr};`);
                     let aFlashloanPromise = PCKFlashloanExecutor.executeFlashloanTrade(this.trades[i]);
                     allFlashloanPromises.push(aFlashloanPromise);
+                
                 }
             }
+            this.isBusy = false;
             Promise.all(allFlashloanPromises).then(async (resultsFlashloan) => {
                 for (let i = 0; i < resultsFlashloan.length; i++) {
                     let [resultsStr, txHash] = resultsFlashloan[i];
                     flog.debug(`PMTS.refreshAll: flashloan executor called, txHash:${txHash}; results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
                 }
-                this.isBusy = false;
             });
             
             //log4js.shutdown(function() { process.exit(1); });

@@ -77,6 +77,10 @@ class FlashloanExecutor {
         flog.debug(`FlEx.executeFlashloanTrade: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
         return ["NOT EXECUTED", txHash];
       }
+      if (this.isBusy) {
+        flog.debug(`FlEx.executeFlashloanTrade: isBusy:${this.isBusy}; skipping this flashloan execution...`);
+        return ["BUSY", txHash];
+      }
       this.isBusy = true;
       let flashloanPool = this.getLendingPool(PCKFLBConfig.baseToken);
       let bnLoanAmount = getBigNumber(PCKFLBConfig.baseToken.amountForSwap, PCKFLBConfig.baseToken.decimals);
@@ -86,8 +90,6 @@ class FlashloanExecutor {
         loanAmount: bnLoanAmount,
         routes: this.passRoutes(trade.hops),
       };
-
-
 
       let executionGasPrice = await gasPriceCalculator.getGasPrice();
       let bnExecutionGasPrice = ethers.utils.parseUnits(`${executionGasPrice}`, "gwei");
