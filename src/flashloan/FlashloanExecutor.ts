@@ -83,6 +83,7 @@ class FlashloanExecutor {
       );
 
       let executionGasPrice = await gasPriceCalculator.getGasPrice();
+      let bnExecutionGasPrice = ethers.utils.parseUnits(`${executionGasPrice}`, "gwei");
       if (executionGasPrice > PCKFLBConfig.gasPriceLimit) {
         flog.debug(`FlEx.executeFlashloanTrade: gasPrice too high, will not execute flashloan; executionGasPrice:${executionGasPrice};`);
         return ["NOT EXECUTED", txHash];
@@ -92,9 +93,11 @@ class FlashloanExecutor {
       let results = "NEW";
       
       try {
-        let tx = await Flashloan.connect(PCKWeb3Handler.web3Signer).dodoFlashLoan(params, {
+        let connectedFlashloanContract = Flashloan.connect(PCKWeb3Handler.web3Signer);
+        flog.debug(`FlEx.executeFlashloanTrade: connectedFlashloanContract ready;`);
+        let tx = await connectedFlashloanContract.dodoFlashLoan(params, {
           gasLimit: PCKFLBConfig.gasLimit,
-          gasPrice: ethers.utils.parseUnits(`${executionGasPrice}`, "gwei"),
+          gasPrice: bnExecutionGasPrice,
           });
         flog.debug(`FlEx.executeFlashloanTrade: flashloan executed; tx.hash:${tx.hash};`);
         flog.debug(`${JSON.stringify(tx)};`);
