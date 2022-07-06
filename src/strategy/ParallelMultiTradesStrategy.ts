@@ -212,9 +212,11 @@ export class ParallelMultiTradesStrategy extends Strategy {
             /*
             for all trades, look into their corresponding pairs, multiply up the rates to get the final rates
             for one or more trades that has final rates > 1 (or the threshold say 1.001), they are flashloan opportunities
-            should execute these flashloans in parallel
+            pick the trade with the highest profit to execute
             */
-            let allFlashloanPromises = [];
+            //let allFlashloanPromises = [];
+            let highestRate = 0;
+            let highestRateTrade:ItfTrade;
             for (let i = 0; i < this.trades.length; i++) {
                 let thisTrade = this.trades[i];
                 let rateForThisTrade:number = 1;
@@ -232,20 +234,18 @@ export class ParallelMultiTradesStrategy extends Strategy {
                 let isProfit = rateForThisTrade > this.isProfitRate;
                 flog.debug(`PMTS.refreshAll: isPft:${isProfit}; %:${rateForThisTrade.toFixed(6)}; trade:${hopsStr};`);
                 if (isProfit) {
-                    flog.debug(`PMTS.refreshAll: will execute flashloan for ${hopsStr};`);
-                    let aFlashloanPromise = PCKFlashloanExecutor.executeFlashloanTrade(this.trades[i]);
-                    allFlashloanPromises.push(aFlashloanPromise);
-                
+                    if (rateForThisTrade > highestRate) {
+                        highestRate = rateForThisTrade;
+                        highestRateTrade = thisTrade;
+                    }
                 }
             }
             this.isBusy = false;
-            Promise.all(allFlashloanPromises).then(async (resultsFlashloan) => {
-                for (let i = 0; i < resultsFlashloan.length; i++) {
-                    let [resultsStr, txHash] = resultsFlashloan[i];
-                    flog.debug(`PMTS.refreshAll: flashloan executor called, txHash:${txHash}; results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
-                }
-            });
-            
+            if (highestRate > 0) {
+                flog.debug(`PMTS.refreshAll: highest%:${highestRate.toFixed(6)}; will execute flashloan for this trade;`);
+                let [resultsStr, txHash] = await PCKFlashloanExecutor.executeFlashloanTrade(highestRateTrade!);
+                flog.debug(`PMTS.refreshAll: flashloan executor called, txHash:${txHash}; results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
+            }
             //log4js.shutdown(function() { process.exit(1); });
         });
 

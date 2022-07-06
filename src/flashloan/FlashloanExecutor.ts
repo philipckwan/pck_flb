@@ -81,6 +81,7 @@ class FlashloanExecutor {
         flog.debug(`FlEx.executeFlashloanTrade: isBusy:${this.isBusy}; skipping this flashloan execution...`);
         return ["BUSY", txHash];
       }
+      let startTime = Date.now();
       this.isBusy = true;
       let flashloanPool = this.getLendingPool(PCKFLBConfig.baseToken);
       let bnLoanAmount = getBigNumber(PCKFLBConfig.baseToken.amountForSwap, PCKFLBConfig.baseToken.decimals);
@@ -105,8 +106,10 @@ class FlashloanExecutor {
         let tx = await this.connectedFlashloanContract.dodoFlashLoan(params, {
           gasLimit: PCKFLBConfig.gasLimit,
           gasPrice: bnExecutionGasPrice,
-          });
-        flog.debug(`FlEx.executeFlashloanTrade: flashloan executed; tx.hash:${tx.hash};`);
+        });
+        let endTime = Date.now();
+        let timeDiff = (endTime - startTime) / 1000;
+        flog.debug(`FlEx.executeFlashloanTrade: flashloan executed; time:${timeDiff}; tx.hash:${tx.hash};`);
         flog.debug(`${JSON.stringify(tx)};`);
         txHash = tx.hash;
         PCKFLBConfig.remainingFlashloanTries--;

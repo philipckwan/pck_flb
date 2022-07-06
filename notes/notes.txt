@@ -40,9 +40,9 @@ DONE(v2.3)-split the flashloan connect contract and execute contract, for furthe
 DONE(v2.4)-should consider to connect the flashloan contract once at init time if allowed
 -investigate if can improve the performance between isOpp:true and flashloan execution
 -if during flashloan but before return, if isOpp:false, can i cancel the flashloan in progress?
--need to resolve the conflict if 2 trades are detected; see "0x2589306e7a613998bfb655a05347aa220206314ecedf9f405480056afeeeef57" and "0xfd753e5d867520e637e1a60d7fee0bba1e05329607cdfe99a70165084cb31d2c"
+DONE(v2.6)-need to resolve the conflict if 2 trades are detected; solution: only execute one trade (the one with highest rate of return)
 -seems one time sushiswap price check took > 3 sec to return, becomes long pole, see 20220706 log; i.e. add a time limit to dex api check, say less than 1.5 sec
 -similar time limit concept to limit flashloan execution, if over time, highly consider to cancel the transaction if possible
 -consider to rewrite the flashloan contract to reduce gas used
 DONE(v2.5)-should allow the polling price check to execute while just don't call flashloan if one already in progress
-
+DONE(v2.6)-use ethers.providers.StaticJsonRpcProvider instead of ethers.providers.JsonRpcProvider to attempt to improve performance

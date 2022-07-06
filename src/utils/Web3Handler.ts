@@ -17,7 +17,7 @@ class Web3Handler {
     }
 
     public isInited:boolean = false;
-    public web3Provider:ethers.providers.JsonRpcProvider;
+    public web3Provider:ethers.providers.StaticJsonRpcProvider;
     public web3Signer:ethers.Wallet;
 
     public init() {
@@ -26,7 +26,7 @@ class Web3Handler {
             clog.warn(msg);
             flog.warn(msg);
         }
-        this.web3Provider = new ethers.providers.JsonRpcProvider(PCKFLBConfig.web3RPCURL);
+        this.web3Provider = new ethers.providers.StaticJsonRpcProvider(PCKFLBConfig.web3RPCURL);
         this.web3Signer = new ethers.Wallet(PCKFLBConfig.privateKey, this.web3Provider);
         let msg = `Web3Handler.init: DONE;`;
         clog.info(msg);
