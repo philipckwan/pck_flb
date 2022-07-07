@@ -27,6 +27,7 @@ export class ParallelMultiTradesStrategy extends Strategy {
     //public twoSwapsArray:ITwoSwaps[] = [];
     public isBusy = false;
     private isProfitRate = 1.001;
+    private previousFlashloanExecutedRate = 0;
     //private trades:
     private swapPairs = new Map<string,ItfHop>();
     private trades:ItfTrade[] = [];
@@ -242,9 +243,14 @@ export class ParallelMultiTradesStrategy extends Strategy {
             }
             this.isBusy = false;
             if (highestRate > 0) {
-                flog.debug(`PMTS.refreshAll: highest%:${highestRate.toFixed(6)}; will execute flashloan for this trade;`);
-                let [resultsStr, txHash] = await PCKFlashloanExecutor.executeFlashloanTrade(highestRateTrade!);
-                flog.debug(`PMTS.refreshAll: flashloan executor called, txHash:${txHash}; results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
+                if (highestRate == this.previousFlashloanExecutedRate) {
+                    flog.debug(`PMTS.refreshAll: highest% is same as this.previousFlashloanExecutedRate, will not execute flashloan`);
+                } else {
+                    this.previousFlashloanExecutedRate = highestRate;
+                    flog.debug(`PMTS.refreshAll: highest%:${highestRate.toFixed(6)}; will execute flashloan for this trade;`);
+                    let [resultsStr, txHash] = await PCKFlashloanExecutor.executeFlashloanTrade(highestRateTrade!);
+                    flog.debug(`PMTS.refreshAll: flashloan executor called, txHash:${txHash}; results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
+                }
             }
             //log4js.shutdown(function() { process.exit(1); });
         });

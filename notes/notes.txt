@@ -1,3 +1,14 @@
+-progressive increase gas price to see if can pre-empt the previous execution
+-seems to have issue with flashloan stuck at executing, subsequent flashloan not able to execute even after long time
+-investigate if can improve the performance between isOpp:true and flashloan execution
+-if during flashloan but before return, if isOpp:false, can i cancel the flashloan in progress?
+-seems one time sushiswap price check took > 3 sec to return, becomes long pole, see 20220706 log; i.e. add a time limit to dex api check, say less than 1.5 sec
+-similar time limit concept to limit flashloan execution, if over time, highly consider to cancel the transaction if possible
+-consider to rewrite the flashloan contract to reduce gas used
+DONE(v2.7)-solution: do not execute flashloan if the rate is same as previously executed rate; problem: if shortening the polling interval to be less than a block time (i.e. < 2sec), then need a way to avoid executing the same flashloan if they are detected across intervals
+
+
+resolved:
 FIXED-get price from uniswap v3 has error
 DONE-loop the swap fetching to identify opportunity to flashloan
 DONE-enable the multi-logs and .env configurations
@@ -5,8 +16,8 @@ DONE-identify opportunity
 DONE(20/5)-after identify opportunity, call flashloan
 DONE-make the time interval to be configurable
 DONE(18/5)-get gas price when pflb isOpp:true
--add a new log to track if flashloan is executed
--add grouping line to stats.log so that easier to tell within the same check
+CANCELLED-add a new log to track if flashloan is executed
+CANCELLED-add grouping line to stats.log so that easier to tell within the same check
 DONE(21/5,v0.14)-simplify the log pattern to reduce information such as year, logger name, etc...
 DONE(20/5)-add a config parameter for flashloan threshold, i.e. if amount is > $10, then execute flashloan
 DONE(20/5)-time the polyscan get gasPrice API call
@@ -22,8 +33,7 @@ DONE(25/5,v1.5)-see if can de-couple the first and second route API call to impr
 DONE(27/5,v1.6)-unexpected error: 05/26T13:16:41:562;ERROR;FlEx.executeFlashloan: ERROR - currently only support swapRoutes.idxBestRouterToAmountList.length == 2;
 PARTIAL_DONE(30/5,v1.7)-still need to try de-couple the fromSwap with toSwap to improve performance
 DONE(27/5,v1.6)-add isOpp:true indicator to log for PTSS
--oldStrategy: 05/26T08:21:53:090;ERROR;Error: insufficient funds for intrinsic transaction cost
--progressive increase gas price to see if can pre-empt the previous execution
+CANCELLED-oldStrategy: 05/26T08:21:53:090;ERROR;Error: insufficient funds for intrinsic transaction cost
 DONE(v1.9)-reduce logging in PTSS and output the winning router 
 DONE(v1.9)-log the time start and duration in PTSS when isOpp:true
 DONE(31/5,v1.8)-lower the gasLimit (or make it configurable) so that the node can accept the tx earlier (i.e. the tx won't be using too much space of a block)
@@ -34,15 +44,9 @@ DONE(v1.12)-increase the number of decimal point when logging prices to stats lo
 DONE(v1.13)-do not execute flashloan if gasprice is over the gasPriceLimit
 DONE(v1.14)-add isFlashloaning flag to stop multiple concurrent flashloan executions
 DONE(v1.14)-obsolete the serial strategy
--seems to have issue with flashloan stuck at executing, subsequent flashloan not able to execute even after long time
 DONE(v2.2)-a new strategy: parallel multi trades strategy (PMTS)
 DONE(v2.3)-split the flashloan connect contract and execute contract, for further timing analysis
 DONE(v2.4)-should consider to connect the flashloan contract once at init time if allowed
--investigate if can improve the performance between isOpp:true and flashloan execution
--if during flashloan but before return, if isOpp:false, can i cancel the flashloan in progress?
 DONE(v2.6)-need to resolve the conflict if 2 trades are detected; solution: only execute one trade (the one with highest rate of return)
--seems one time sushiswap price check took > 3 sec to return, becomes long pole, see 20220706 log; i.e. add a time limit to dex api check, say less than 1.5 sec
--similar time limit concept to limit flashloan execution, if over time, highly consider to cancel the transaction if possible
--consider to rewrite the flashloan contract to reduce gas used
 DONE(v2.5)-should allow the polling price check to execute while just don't call flashloan if one already in progress
 DONE(v2.6)-use ethers.providers.StaticJsonRpcProvider instead of ethers.providers.JsonRpcProvider to attempt to improve performance
