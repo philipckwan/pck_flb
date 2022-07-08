@@ -245,6 +245,8 @@ export class ParallelMultiTradesStrategy extends Strategy {
             if (highestRate > 0) {
                 if (highestRate == this.previousFlashloanExecutedRate) {
                     flog.debug(`PMTS.refreshAll: highest% is same as this.previousFlashloanExecutedRate, will not execute flashloan`);
+                } else if (!this.isDoFlashloan) {
+                    flog.debug(`PMTS.refreshAll: this.isDoFlashloan:${this.isDoFlashloan}, will not do flashloan;`);
                 } else {
                     this.previousFlashloanExecutedRate = highestRate;
                     flog.debug(`PMTS.refreshAll: highest%:${highestRate.toFixed(6)}; will execute flashloan for this trade;`);
@@ -252,10 +254,10 @@ export class ParallelMultiTradesStrategy extends Strategy {
                     flog.debug(`PMTS.refreshAll: flashloan executor called, txHash:${txHash}; results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
                 }
             }
-            //log4js.shutdown(function() { process.exit(1); });
+            if (this.isRefreshOnce) {
+                flog.debug(`PMTS.refreshAll: this.isRefreshOnce: ${this.isRefreshOnce}, will exit now;`);
+                log4js.shutdown(function() { process.exit(1); });
+            }
         });
-
-
-
     }
 }

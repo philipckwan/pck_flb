@@ -44,7 +44,7 @@ export const main = async () => {
     //loggerTest();
     let testVal = process.env.TEST_KEY;
     let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
-    let msg = `index.main: v2.7; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v2.8; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
     clog.debug(msg);
     flog.debug(msg);
 
@@ -82,10 +82,24 @@ export const main = async () => {
 
     //log4js.shutdown(function() { process.exit(1); });
 
+    if (process.argv.length > 3) {
+      clog.debug(`index.main: extra arguments are passed in, will not run intervals...`);
+      let arg4 = process.argv[3];
+      if (arg4 == "noFlash") {
+        clog.debug(`index.main: will not flashloan...`);
+        thisStrategy.isDoFlashloan = false;
+      }
+      let arg5 = process.argv[4];
+      if (arg5 == "refreshOnce") {
+        clog.debug(`index.main: will refresh once...`);
+        thisStrategy.isRefreshOnce = true;
+      }
+    }
     const func = async () => {
       thisStrategy.refreshAll();
     }
     setInterval(func, pollIntervalMSec);    
+    
     console.log("index.main: END;");
 };
 

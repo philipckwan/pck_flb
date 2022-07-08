@@ -6,6 +6,8 @@ import {ISwapRoutes} from "../interfaces";
 export abstract class Strategy {
 
   private name:string;
+  public isDoFlashloan:boolean = true;
+  public isRefreshOnce:boolean = false;
 
   constructor(name: string) {
     this.name = name;
