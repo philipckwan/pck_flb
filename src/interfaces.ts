@@ -10,6 +10,7 @@ export interface IToken {
 
 export interface IRouter {
   name: string;
+  nameShort: string;
   address: string;
   protocol: number;
 }

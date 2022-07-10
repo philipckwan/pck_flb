@@ -100,7 +100,7 @@ class FlashloanExecutor {
       }
 
       flog.debug(`FlEx.executeFlashloanTrade: about to flashloan (v2)...; executionGasPrice:${executionGasPrice};`);
-      let results = "NEW";
+      let results = "EXECUTING";
       
       try {
         let tx = await this.connectedFlashloanContract.dodoFlashLoan(params, {
@@ -114,14 +114,19 @@ class FlashloanExecutor {
         txHash = tx.hash;
         PCKFLBConfig.remainingFlashloanTries--;
         results = "EXECUTED";
+        this.isBusy = false;
+        let txReceipt = await tx.wait();
+        flog.debug(`FlEx.executeFlashloanTrade: flashloan confirmed; txReceipt -----BELOW-----`);
+        flog.debug(txReceipt);
+        flog.debug(`FlEx.executeFlashloanTrade: flashloan confirmed; txReceipt -----ABOVE-----`);
       } catch (ex) {
         let msg = `FlEx.executeFlashloanTrade: ERROR;`;
+        this.isBusy = false;
         clog.error(msg);
         flog.error(msg);
         flog.error(ex);
         results = "ERROR";
       }
-      this.isBusy = false;
       return [results, txHash];
     }
 

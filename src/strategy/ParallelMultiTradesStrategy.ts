@@ -1,6 +1,7 @@
 import * as log4js from "log4js";
 const flog = log4js.getLogger("file");
 const clog = log4js.getLogger("console");
+const fltxLog = log4js.getLogger("flashloanTxFile");
 import {ITwoSwaps, ISwapPairRoutes, IRouterToAmount, IToRate, ISwapRoutes, ISwap, IToken, ItfHop, IRouter, ItfTrade} from "../interfaces";
 import {BigNumber, ethers} from "ethers";
 import {getSwapRateByHop} from "../uniswap/uniswapPrice"
@@ -60,6 +61,7 @@ export class ParallelMultiTradesStrategy extends Strategy {
                     tokenTo: bToken,
                     swapRouter:{
                         name:"",
+                        nameShort:"",
                         address:"",
                         protocol:-1
                     },
@@ -226,7 +228,7 @@ export class ParallelMultiTradesStrategy extends Strategy {
                     if (j == 0) {
                         hopsStr += `[${thisTrade.hops[j].tokenFrom.symbol}`
                     }
-                    hopsStr += `-(${thisTrade.hops[j].swapRouter.name})-${thisTrade.hops[j].tokenTo.symbol}`;
+                    hopsStr += `-(${thisTrade.hops[j].swapRouter.nameShort})-${thisTrade.hops[j].tokenTo.symbol}`;
                     if (j == thisTrade.hops.length - 1) {
                         hopsStr += "]";
                     }
@@ -251,7 +253,12 @@ export class ParallelMultiTradesStrategy extends Strategy {
                     this.previousFlashloanExecutedRate = highestRate;
                     flog.debug(`PMTS.refreshAll: highest%:${highestRate.toFixed(6)}; will execute flashloan for this trade;`);
                     let [resultsStr, txHash] = await PCKFlashloanExecutor.executeFlashloanTrade(highestRateTrade!);
-                    flog.debug(`PMTS.refreshAll: flashloan executor called, txHash:${txHash}; results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
+                    if (resultsStr == "EXECUTED") {
+                        flog.debug(`PMTS.refreshAll: flashloan executor called, txHash:${txHash}; results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);                        
+                    } else {
+                        flog.debug(`PMTS.refreshAll: flashloan executor called but not executed, results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
+                    }
+                    
                 }
             }
             if (this.isRefreshOnce) {

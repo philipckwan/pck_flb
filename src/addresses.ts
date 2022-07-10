@@ -66,36 +66,43 @@ type routerAddress = { [protocol: string]: IRouter };
 export const SWAP_ROUTER: routerAddress = {
     POLYGON_UNISWAP_V3: {
         name: "POLYGON_UNISWAP_V3",
+        nameShort: "uniswapV3",
         address: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
         protocol: 0
     },
     POLYGON_SUSHISWAP: {
         name: "POLYGON_SUSHISWAP",
+        nameShort: "sushiswap",
         address: "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
         protocol: 1
     },
     POLYGON_QUICKSWAP: {
         name: "POLYGON_QUICKSWAP",
+        nameShort: "quickswap",
         address: "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
         protocol: 2
     },
     POLYGON_APESWAP: {
         name: "POLYGON_APESWAP",
+        nameShort: "apeswap",
         address: "0xC0788A3aD43d79aa53B09c2EaCc313A787d1d607",
         protocol: 3
     },
     POLYGON_JETSWAP: {
         name: "POLYGON_JETSWAP",
+        nameShort: "jetswap",
         address: "0x5C6EC38fb0e2609672BDf628B1fD605A523E5923",
         protocol: 4
     },
     POLYGON_POLYCAT: {
         name: "POLYGON_POLYCAT",
+        nameShort: "polycat",
         address: "0x94930a328162957FF1dd48900aF67B5439336cBD",
         protocol: 5
     },
     POLYGON_WAULTSWAP: {
         name: "POLYGON_WAULTSWAP",
+        nameShort: "waultswap",
         address: "0x3a1D87f206D12415f5b0A33E786967680AAb4f6d",
         protocol: 6
     }

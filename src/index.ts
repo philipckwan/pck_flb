@@ -20,16 +20,19 @@ const init = () => {
   let consoleLoggerLevel = process.env.CONSOLE_LOGGER_LEVEL ? process.env.CONSOLE_LOGGER_LEVEL : "debug";
   let fileLoggerFilepath = process.env.FILE_LOGGER_FILEPATH ? process.env.FILE_LOGGER_FILEPATH : "log/pck_flb.log";
   let statsFileLoggerFilepath = process.env.STATSFILE_LOGGER_FILEPATH ? process.env.STATSFILE_LOGGER_FILEPATH : "log/pck_stats.log";
+  let flashloanTxLoggerFilepath = process.env.FLASHLOAN_TX_LOGGER_FILEPATH ? process.env.FLASHLOAN_TX_LOGGER_FILEPATH : "log/pck-flashloan_tx.log";
 
   log4js.configure({
     appenders: {
       file: { type:"file", filename:fileLoggerFilepath, layout:{type:"pattern", pattern:"%d{MM/ddThh:mm:ss:SSS};%p;%m"}},
       statsFile: { type:"file", filename:statsFileLoggerFilepath, layout:{type:"pattern", pattern:"%m"}},
+      flashloanTxFile: { type:"file", filename:flashloanTxLoggerFilepath, layout:{type:"pattern", pattern:"%d{MM/ddThh:mm:ss:SSS};%m"}},
       console: { type:"console"}
     },
     categories: {
       file: { appenders:["file"], level: fileLoggerLevel },
       statsFile: { appenders:["statsFile"], level: "debug"},
+      flashloanTxFile: { appenders:["flashloanTxFile"], level: "debug"},
       default: { appenders: ["console"], level: consoleLoggerLevel }
     },
   });
@@ -44,7 +47,7 @@ export const main = async () => {
     //loggerTest();
     let testVal = process.env.TEST_KEY;
     let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
-    let msg = `index.main: v2.8; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v2.9; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
     clog.debug(msg);
     flog.debug(msg);
 
@@ -83,7 +86,7 @@ export const main = async () => {
     //log4js.shutdown(function() { process.exit(1); });
 
     if (process.argv.length > 3) {
-      clog.debug(`index.main: extra arguments are passed in, will not run intervals...`);
+      clog.debug(`index.main: extra arguments are passed in;`);
       let arg4 = process.argv[3];
       if (arg4 == "noFlash") {
         clog.debug(`index.main: will not flashloan...`);
