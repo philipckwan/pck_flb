@@ -244,6 +244,18 @@ export class ParallelMultiTradesStrategy extends Strategy {
                 }
             }
             this.isBusy = false;
+            if (this.isForceFlashloan) {
+                let msg = `PMTS.refreshAll: forcing a flashloan (this should not be run in production);`;
+                flog.debug(msg);
+                clog.debug(msg);
+                if (highestRate == 0) {
+                    highestRate = 1.01;
+                    highestRateTrade = this.trades[this.trades.length - 1];
+                } else {
+                    flog.debug(`PMTS.refreshAll: a highestRate already existed...`);
+                }
+                this.isForceFlashloan = false;
+            }
             if (highestRate > 0) {
                 if (highestRate == this.previousFlashloanExecutedRate) {
                     flog.debug(`PMTS.refreshAll: highest% is same as this.previousFlashloanExecutedRate, will not execute flashloan`);

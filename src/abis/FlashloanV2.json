@@ -200,11 +200,6 @@
                   "internalType": "struct IFlashloan.Hop[]",
                   "name": "hops",
                   "type": "tuple[]"
-                },
-                {
-                  "internalType": "uint16",
-                  "name": "part",
-                  "type": "uint16"
                 }
               ],
               "internalType": "struct IFlashloan.Route[]",

@@ -7,6 +7,7 @@ export abstract class Strategy {
 
   private name:string;
   public isDoFlashloan:boolean = true;
+  public isForceFlashloan:boolean = false;
   public isRefreshOnce:boolean = false;
 
   constructor(name: string) {

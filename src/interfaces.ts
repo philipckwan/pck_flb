@@ -99,5 +99,4 @@ export interface ItfFlashloanV2Hop {
 
 export interface ItfFlashloanV2Route {
   hops: ItfFlashloanV2Hop[];
-  part: number;
 }

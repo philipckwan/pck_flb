@@ -64,8 +64,7 @@ class FlashloanExecutor {
       }
       return [
         {
-          hops: flashloanHops,
-          part: 10000,
+          hops: flashloanHops
         },
       ];
     }
@@ -96,6 +95,7 @@ class FlashloanExecutor {
       let bnExecutionGasPrice = ethers.utils.parseUnits(`${executionGasPrice}`, "gwei");
       if (executionGasPrice > PCKFLBConfig.gasPriceLimit) {
         flog.debug(`FlEx.executeFlashloanTrade: gasPrice too high, will not execute flashloan; executionGasPrice:${executionGasPrice};`);
+        this.isBusy = false;
         return ["NOT EXECUTED", txHash];
       }
 

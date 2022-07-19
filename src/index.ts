@@ -47,7 +47,7 @@ export const main = async () => {
     //loggerTest();
     let testVal = process.env.TEST_KEY;
     let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
-    let msg = `index.main: v2.9; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v2.10; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
     clog.debug(msg);
     flog.debug(msg);
 
@@ -91,6 +91,8 @@ export const main = async () => {
       if (arg4 == "noFlash") {
         clog.debug(`index.main: will not flashloan...`);
         thisStrategy.isDoFlashloan = false;
+      } else if (arg4 == "forceFlash") {
+        thisStrategy.isForceFlashloan = true;
       }
       let arg5 = process.argv[4];
       if (arg5 == "refreshOnce") {
