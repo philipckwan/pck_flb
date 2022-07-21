@@ -41,7 +41,7 @@ export abstract class Strategy {
 
   public abstract init():void;
 
-  public abstract printSwapPair(idx:number):void;
+  //public abstract printSwapPair(idx:number):void;
 }
 
 export namespace Strategy {

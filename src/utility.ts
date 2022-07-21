@@ -40,6 +40,7 @@ export const parseRouterLists = (routersListStr:string) : IRouter[] => {
     return routers;
 };
 
+/*
 export const parseSwapLists = (swapRoutesListStr:string, routers:IRouter[], loanAmountUSDx:number) : ISwapRoutes[] => {
     let swapRoutesList:ISwapRoutes[] = [];
 
@@ -89,6 +90,7 @@ export const printSwapRoutes = (aSwapRoutes:ISwapRoutes) => {
     }
     clog.debug(`utility.printSwapRoutes: END;`);
 }
+*/
 
 export const getSwapsStrings = (aSwapRoutes:ISwapRoutes) : string => {
   let result = "[";

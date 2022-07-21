@@ -22,8 +22,11 @@ DONE(v2.7)-solution: do not execute flashloan if the rate is same as previously 
 DONE(v2.9)-await the tx.wait() so to capture the confirmation time
 DONE(v2.8)-add command line argument options so that this bot can be run against a mainnet fork to collect data
 DONE(v2.10)-HIGH PRIORITY-gas price too high seems causing flashloan executor to stuck at BUSY and never able to execute, see logs on 20220715
--obsolete ParallelTwoSwapsStrategy
+DONE(v2.11)-obsolete ParallelTwoSwapsStrategy
 DONE(v2.10)-remove "part:10000" in flashloan param to match the new contract interface
+DONE(v2.11)-a parallel thread to report the block number
+-reduce logging
+-need to reintroduce the exchange amount by regular updating, otherwise it will out-sync and cannot detect opportunity
 
 
 resolved:

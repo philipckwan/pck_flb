@@ -2,13 +2,12 @@ import { config as dotEnvConfig } from "dotenv";
 let argEnv = process.argv[2] ? process.argv[2] : "";
 dotEnvConfig({path:`${argEnv}.env`});
 import * as log4js from "log4js";
-import {parseRouterLists, parseSwapLists, printSwapRoutes} from "./utility";
+//import {parseRouterLists, parseSwapLists, printSwapRoutes} from "./utility";
 import {PCKFLBConfig} from "./config";
 import {gasPriceCalculator} from "./utils/GasPriceCalculator";
 import {PCKWeb3Handler} from "./utils/Web3Handler";
 import {PCKPriceV3} from "./uniswap/priceV3";
 import {Strategy} from "./strategy/Strategy";
-import {ParallelTwoSwapsStrategy} from "./strategy/ParallelTwoSwapsStrategy";
 import {ParallelMultiTradesStrategy} from "./strategy/ParallelMultiTradesStrategy";
 import {PCKFlashloanExecutor} from "./flashloan/FlashloanExecutor";
 
@@ -47,7 +46,7 @@ export const main = async () => {
     //loggerTest();
     let testVal = process.env.TEST_KEY;
     let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
-    let msg = `index.main: v2.10; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v2.11; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
     clog.debug(msg);
     flog.debug(msg);
 
@@ -66,12 +65,19 @@ export const main = async () => {
     //let swapRoutesList:ISwapRoutes[] = [];
 
     if (PCKFLBConfig.arbStrategy === Strategy.MODE[Strategy.MODE.PARALLEL_V2]) {
-      let swapRouteListStr = process.env.SWAP_ROUTE_LIST ? process.env.SWAP_ROUTE_LIST : "";
+      let msg = `index.main: ERROR - PTSS is now obsoleted;`;
+      clog.error(msg);
+      flog.error(msg);
+      throw new Error(msg);
+      /*
+      let swapRouteListStr = process.env.SWAP_ROUTE_LIST ? process.env.SWAP_ROUTE_LIST :
+       "";
       let swapRoutesList = parseSwapLists(swapRouteListStr, PCKFLBConfig.routers, PCKFLBConfig.baseToken.amountForSwap);
       let ptss = new ParallelTwoSwapsStrategy();
       //thisStrategy = new ParallelTwoSwapsStrategy();
       await ptss.initTwoSwapsArray(swapRoutesList);
       thisStrategy = ptss;
+      */
     } else if (PCKFLBConfig.arbStrategy === Strategy.MODE[Strategy.MODE.PMTS_V1]) {
       thisStrategy = new ParallelMultiTradesStrategy()
       thisStrategy.init();

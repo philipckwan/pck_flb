@@ -3,6 +3,7 @@ import {PCKFLBConfig} from "../config";
 import {PCKWeb3Handler} from "./Web3Handler";
 import * as log4js from "log4js";
 import {ethers} from "ethers";
+import {formatTime} from "../utility";
 
 const flog = log4js.getLogger("file");
 const clog = log4js.getLogger("console");
@@ -106,10 +107,15 @@ class GasPriceCalculator {
     }
 
     private async getGasPriceDispatch(updateGasPriceRecent = false): Promise<number> {
-        flog.debug(`GasPriceCalculator.getGasPriceDispatch: v1.2; updateGasPriceRecent:${updateGasPriceRecent};`);
+        //flog.debug(`GasPriceCalculator.getGasPriceDispatch: v1.2; updateGasPriceRecent:${updateGasPriceRecent}; this.gasPriceMode:${this.gasPriceMode}; GAS_PRICE_MODE.ETHERS:${GAS_PRICE_MODE.ETHERS};`);
         if (updateGasPriceRecent) {
+            if (this.gasPriceMode == GAS_PRICE_MODE.ETHERS) {
+                this.getGasPriceFromEthers(updateGasPriceRecent);
+            } else {
+                this.getGasPriceFromPolyscan(updateGasPriceRecent);
+            }
             //this.getGasPriceFromEthers(updateGasPriceRecent);
-            this.getGasPriceFromPolyscan(updateGasPriceRecent);
+            //this.getGasPriceFromPolyscan(updateGasPriceRecent);
             return 0;
         } else {
             if (this.gasPriceMode == GAS_PRICE_MODE.ETHERS) {
@@ -174,7 +180,8 @@ class GasPriceCalculator {
             if (updateGasPriceRecent) {
                 this.gasPriceRecentEthers = gasPrice;
             }
-            flog.debug(`GasPriceCalculator.getGasPriceFromEthers: time:${timeDiff};`);
+            
+            flog.debug(`GasPriceCalculator.getGasPriceFromEthers: gasPrice:[${gasPrice}]; T:[${timeDiff}|${formatTime(startTime)}->${formatTime(endTime)}];`);
         } catch (ex) {
             flog.error(`GasPriceCalculator.getGasPriceFromEthers: ERROR;`);
             flog.error(ex);
@@ -184,7 +191,7 @@ class GasPriceCalculator {
 
     public async doAPollGasPrice() {
         await this.getGasPriceDispatch(true);
-        //flog.debug(`GasPriceCalculator.doAPollGasPrice: safe:${this.gasPriceRecentPolygonSafe}; propose:${this.gasPriceRecentPolygonPropose}; fast:${this.gasPriceRecentPolygonFast}: ethers:${this.gasPriceRecentEthers};`);
+        flog.debug(`GasPriceCalculator.doAPollGasPrice: safe:${this.gasPriceRecentPolygonSafe}; propose:${this.gasPriceRecentPolygonPropose}; fast:${this.gasPriceRecentPolygonFast}: ethers:${this.gasPriceRecentEthers};`);
     }
 
     public display () {

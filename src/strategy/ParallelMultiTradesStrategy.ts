@@ -10,16 +10,19 @@ import {PCKFLBConfig} from "../config";
 import {Strategy} from "./Strategy";
 import {getBigNumber, formatTime} from "../utility";
 import {ERC20_TOKEN, SWAP_ROUTER} from "../addresses";
+import {PCKWeb3Handler} from "../utils/Web3Handler";
 
 
 
 export class ParallelMultiTradesStrategy extends Strategy {
+    /*
     public initTwoSwapsArray(aSwapPairList: ISwapRoutes[]): void {
         throw new Error(`Method not implemented. aSwapPairList.length:${aSwapPairList.length};`);
     }
     public printSwapPair(idx: number): void {
         throw new Error(`Method not implemented. idx:${idx};`);
     }
+    */
 
     public constructor() {
         super("ParallelMultiTradesStrategy");
@@ -189,6 +192,23 @@ export class ParallelMultiTradesStrategy extends Strategy {
         // for all swapPairs, refresh the rates and populate each's maximum return rate
         let allSwapPairPromises = [];
         //flog.debug(`PMTS.refreshAll: swapPairs.size:${this.swapPairs.size};`);
+
+        // will attempt to getBlockNumber and gasPrice here for now...
+        try {
+            let currentBlockNumberPromise = PCKWeb3Handler.web3Provider.getBlockNumber();
+            Promise.resolve(currentBlockNumberPromise).then(async (currentBlockNumber) => {
+                let bEndTime = Date.now();
+                let bTimeDiff = (bEndTime - startTime) / 1000;
+                flog.debug(`PMTS.refreshAll: currentBlockNumber:[${currentBlockNumber}]; T:[${bTimeDiff}|${formatTime(startTime)}->${formatTime(bEndTime)}];`);
+            }).catch((error) => {
+                flog.error(`PMTS.refreshAll: ERROR - in getting currentBlockNumber promise;`);
+                flog.error(error);
+            });
+        } catch (ex) {
+            flog.error(`PMTS.refreshAll: ERROR - in getting currentBlockNumber;`);
+            flog.error(ex);
+        }     
+
         for (let aSwapPair of this.swapPairs.values()){
             for (let aSwapRouter of PCKFLBConfig.routers) {
                 let aPromiseSwapRate = getSwapRateByHop(aSwapPair, aSwapRouter);
