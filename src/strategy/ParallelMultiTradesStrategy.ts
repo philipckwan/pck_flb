@@ -183,7 +183,7 @@ export class ParallelMultiTradesStrategy extends Strategy {
 
     public refreshAll():void {
         if (this.isBusy) {
-            flog.debug(`PMTS.refreshAll: isBusy:${this.isBusy}; skipping this refresh check...`);
+            flog.debug(`PMTS.1.0: isBusy:${this.isBusy}; skipping this refresh check...`);
             return;
         }
         this.isBusy = true;
@@ -199,13 +199,13 @@ export class ParallelMultiTradesStrategy extends Strategy {
             Promise.resolve(currentBlockNumberPromise).then(async (currentBlockNumber) => {
                 let bEndTime = Date.now();
                 let bTimeDiff = (bEndTime - startTime) / 1000;
-                flog.debug(`PMTS.refreshAll: currentBlockNumber:[${currentBlockNumber}]; T:[${bTimeDiff}|${formatTime(startTime)}->${formatTime(bEndTime)}];`);
+                flog.debug(`PMTS.2.0: crntBlk#:[${currentBlockNumber}]; T:[${bTimeDiff}|${formatTime(startTime)}->${formatTime(bEndTime)}];`);
             }).catch((error) => {
-                flog.error(`PMTS.refreshAll: ERROR - in getting currentBlockNumber promise;`);
+                flog.error(`PMTS.3.0: ERROR - in getting currentBlockNumber promise;`);
                 flog.error(error);
             });
         } catch (ex) {
-            flog.error(`PMTS.refreshAll: ERROR - in getting currentBlockNumber;`);
+            flog.error(`PMTS.4.0: ERROR - in getting currentBlockNumber;`);
             flog.error(ex);
         }     
 
@@ -231,7 +231,7 @@ export class ParallelMultiTradesStrategy extends Strategy {
             }
             let endTime = Date.now();
             let timeDiff = (endTime - startTime) / 1000;
-            flog.debug(`PMTS.refreshAll: all swapPairs price check done; T:[${timeDiff}|${formatTime(startTime)}->${formatTime(endTime)}];`);
+            flog.debug(`PMTS.5.0: prc chk done; T:[${timeDiff}|${formatTime(startTime)}->${formatTime(endTime)}];`);
             /*
             for all trades, look into their corresponding pairs, multiply up the rates to get the final rates
             for one or more trades that has final rates > 1 (or the threshold say 1.001), they are flashloan opportunities
@@ -248,14 +248,15 @@ export class ParallelMultiTradesStrategy extends Strategy {
                     if (j == 0) {
                         hopsStr += `[${thisTrade.hops[j].tokenFrom.symbol}`
                     }
-                    hopsStr += `-(${thisTrade.hops[j].swapRouter.nameShort})-${thisTrade.hops[j].tokenTo.symbol}`;
+                    hopsStr += `-(${thisTrade.hops[j].swapRouter.nameShort.substring(0,3)})-${thisTrade.hops[j].tokenTo.symbol}`;
                     if (j == thisTrade.hops.length - 1) {
                         hopsStr += "]";
                     }
                     rateForThisTrade *= thisTrade.hops[j].maxRate;
                 }
                 let isProfit = rateForThisTrade > this.isProfitRate;
-                flog.debug(`PMTS.refreshAll: isPft:${isProfit}; %:${rateForThisTrade.toFixed(6)}; trade:${hopsStr};`);
+                let isProfitStr = isProfit ? "t" : "f";
+                flog.debug(`PMTS.6: isPft:${isProfitStr}; %:${rateForThisTrade.toFixed(6)}; trd:${hopsStr};`);
                 if (isProfit) {
                     if (rateForThisTrade > highestRate) {
                         highestRate = rateForThisTrade;
@@ -265,36 +266,36 @@ export class ParallelMultiTradesStrategy extends Strategy {
             }
             this.isBusy = false;
             if (this.isForceFlashloan) {
-                let msg = `PMTS.refreshAll: forcing a flashloan (this should not be run in production);`;
+                let msg = `PMTS.7.0: forcing a flashloan (this should not be run in production);`;
                 flog.debug(msg);
                 clog.debug(msg);
                 if (highestRate == 0) {
                     highestRate = 1.01;
                     highestRateTrade = this.trades[this.trades.length - 1];
                 } else {
-                    flog.debug(`PMTS.refreshAll: a highestRate already existed...`);
+                    flog.debug(`PMTS.8.0: a highestRate already existed...`);
                 }
                 this.isForceFlashloan = false;
             }
             if (highestRate > 0) {
                 if (highestRate == this.previousFlashloanExecutedRate) {
-                    flog.debug(`PMTS.refreshAll: highest% is same as this.previousFlashloanExecutedRate, will not execute flashloan`);
+                    flog.debug(`PMTS.9.0: highest% is same as this.previousFlashloanExecutedRate, will not execute flashloan`);
                 } else if (!this.isDoFlashloan) {
-                    flog.debug(`PMTS.refreshAll: this.isDoFlashloan:${this.isDoFlashloan}, will not do flashloan;`);
+                    flog.debug(`PMTS.10.0: this.isDoFlashloan:${this.isDoFlashloan}, will not do flashloan;`);
                 } else {
                     this.previousFlashloanExecutedRate = highestRate;
-                    flog.debug(`PMTS.refreshAll: highest%:${highestRate.toFixed(6)}; will execute flashloan for this trade;`);
+                    flog.debug(`PMTS.11.0: highest%:${highestRate.toFixed(6)}; will execute flashloan for this trade;`);
                     let [resultsStr, txHash] = await PCKFlashloanExecutor.executeFlashloanTrade(highestRateTrade!);
                     if (resultsStr == "EXECUTED") {
-                        flog.debug(`PMTS.refreshAll: flashloan executor called, txHash:${txHash}; results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);                        
+                        flog.debug(`PMTS.12.0: flashloan executor called, txHash:${txHash}; results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);                        
                     } else {
-                        flog.debug(`PMTS.refreshAll: flashloan executor called but not executed, results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
+                        flog.debug(`PMTS.13.0: flashloan executor called but not executed, results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
                     }
                     
                 }
             }
             if (this.isRefreshOnce) {
-                flog.debug(`PMTS.refreshAll: this.isRefreshOnce: ${this.isRefreshOnce}, will exit now;`);
+                flog.debug(`PMTS.14.0: this.isRefreshOnce: ${this.isRefreshOnce}, will exit now;`);
                 log4js.shutdown(function() { process.exit(1); });
             }
         });

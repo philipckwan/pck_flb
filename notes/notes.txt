@@ -25,7 +25,7 @@ DONE(v2.10)-HIGH PRIORITY-gas price too high seems causing flashloan executor to
 DONE(v2.11)-obsolete ParallelTwoSwapsStrategy
 DONE(v2.10)-remove "part:10000" in flashloan param to match the new contract interface
 DONE(v2.11)-a parallel thread to report the block number
--reduce logging
+DONE(v2.12)-reduce logging
 -need to reintroduce the exchange amount by regular updating, otherwise it will out-sync and cannot detect opportunity
 
 
