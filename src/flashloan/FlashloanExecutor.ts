@@ -4,7 +4,7 @@ import {ethers} from "ethers";
 import * as FlashloanJson from "../abis/Flashloan.json";
 import * as FlashloanJsonV2 from "../abis/FlashloanV2.json";
 import {dodoV2Pool, PROTOCOL_ROUTER, SWAP_ROUTER} from "../addresses";
-import {getBigNumber} from "../utility";
+import {getBigNumber, formatTime} from "../utility";
 import {PCKWeb3Handler} from "../utils/Web3Handler";
 import {PCKFLBConfig} from "../config";
 import {PCKPriceV3} from "../uniswap/priceV3"
@@ -12,6 +12,7 @@ import {gasPriceCalculator} from "../utils/GasPriceCalculator";
 
 const flog = log4js.getLogger("file");
 const clog = log4js.getLogger("console");
+const fltxLog = log4js.getLogger("flashloanTxFile");
 
 type testedPoolMap = { [erc20Address: string]: string[] };
 const testedPools: testedPoolMap = {
@@ -115,10 +116,13 @@ class FlashloanExecutor {
         PCKFLBConfig.remainingFlashloanTries--;
         results = "EXECUTED";
         this.isBusy = false;
+        let flWaitStartTime = Date.now();
         let txReceipt = await tx.wait();
+        let flWaitEndTime = Date.now();
         flog.debug(`FlEx.executeFlashloanTrade: flashloan confirmed; txReceipt -----BELOW-----`);
         flog.debug(txReceipt);
         flog.debug(`FlEx.executeFlashloanTrade: flashloan confirmed; txReceipt -----ABOVE-----`);
+        fltxLog.debug(`FLEX: |@[${PCKFLBConfig.currentBlkNumber}]|txn:[${txHash}]|[${formatTime(flWaitStartTime)}->${formatTime(flWaitEndTime)}]`);
       } catch (ex) {
         let msg = `FlEx.executeFlashloanTrade: ERROR;`;
         this.isBusy = false;

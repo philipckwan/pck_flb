@@ -35,6 +35,7 @@ class Config
     public baseToken:IToken;
     public tradeTokens:IToken[] = [];
     public routers:IRouter[] = [];
+    public currentBlkNumber:number = 0;
 
 
     public init() {

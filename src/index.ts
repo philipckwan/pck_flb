@@ -46,7 +46,7 @@ export const main = async () => {
     //loggerTest();
     let testVal = process.env.TEST_KEY;
     let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
-    let msg = `index.main: v2.12; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v2.13; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
     clog.debug(msg);
     flog.debug(msg);
 

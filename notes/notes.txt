@@ -1,5 +1,22 @@
--progressive increase gas price to see if can pre-empt the previous execution
--investigate if can improve the performance between isOpp:true and flashloan execution
+-if during flashloan but before return, if isOpp:false, can i cancel the flashloan in progress?
+-seems one time sushiswap price check took > 3 sec to return, becomes long pole, see 20220706 log; i.e. add a time limit to dex api check, say less than 1.5 sec
+-similar time limit concept to limit flashloan execution, if over time, highly consider to cancel the transaction if possible
+-need to reintroduce the exchange amount by regular updating, otherwise it will out-sync and cannot detect opportunity
+DONE(v2.13)-consolidate logging of opportunity detected to flashloan executed
+
+
+resolved:
+DONE(v2.10)-consider to rewrite the flashloan contract to reduce gas used
+DONE(v2.7)-solution: do not execute flashloan if the rate is same as previously executed rate; problem: if shortening the polling interval to be less than a block time (i.e. < 2sec), then need a way to avoid executing the same flashloan if they are detected across intervals
+DONE(v2.9)-await the tx.wait() so to capture the confirmation time
+DONE(v2.8)-add command line argument options so that this bot can be run against a mainnet fork to collect data
+DONE(v2.10)-HIGH PRIORITY-gas price too high seems causing flashloan executor to stuck at BUSY and never able to execute, see logs on 20220715
+DONE(v2.11)-obsolete ParallelTwoSwapsStrategy
+DONE(v2.10)-remove "part:10000" in flashloan param to match the new contract interface
+DONE(v2.11)-a parallel thread to report the block number
+DONE(v2.12)-reduce logging
+CANCELLED-progressive increase gas price to see if can pre-empt the previous execution
+CANCELLED-investigate if can improve the performance between isOpp:true and flashloan execution
  -see hardhat log, if can reduce these calls:
 eth_gasPrice
 eth_getBlockByNumber
@@ -13,23 +30,6 @@ eth_sendRawTransaction
   Value:           0 ETH
   Gas used:        534214 of 980000
   Block #30465282: 0xc52948be9764e447923d6d1369306013a36359094c72d20254e8b9cbdbd641fc
-
--if during flashloan but before return, if isOpp:false, can i cancel the flashloan in progress?
--seems one time sushiswap price check took > 3 sec to return, becomes long pole, see 20220706 log; i.e. add a time limit to dex api check, say less than 1.5 sec
--similar time limit concept to limit flashloan execution, if over time, highly consider to cancel the transaction if possible
-DONE(v2.10)-consider to rewrite the flashloan contract to reduce gas used
-DONE(v2.7)-solution: do not execute flashloan if the rate is same as previously executed rate; problem: if shortening the polling interval to be less than a block time (i.e. < 2sec), then need a way to avoid executing the same flashloan if they are detected across intervals
-DONE(v2.9)-await the tx.wait() so to capture the confirmation time
-DONE(v2.8)-add command line argument options so that this bot can be run against a mainnet fork to collect data
-DONE(v2.10)-HIGH PRIORITY-gas price too high seems causing flashloan executor to stuck at BUSY and never able to execute, see logs on 20220715
-DONE(v2.11)-obsolete ParallelTwoSwapsStrategy
-DONE(v2.10)-remove "part:10000" in flashloan param to match the new contract interface
-DONE(v2.11)-a parallel thread to report the block number
-DONE(v2.12)-reduce logging
--need to reintroduce the exchange amount by regular updating, otherwise it will out-sync and cannot detect opportunity
-
-
-resolved:
 FIXED-get price from uniswap v3 has error
 DONE-loop the swap fetching to identify opportunity to flashloan
 DONE-enable the multi-logs and .env configurations
