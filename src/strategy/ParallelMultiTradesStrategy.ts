@@ -2,16 +2,13 @@ import * as log4js from "log4js";
 const flog = log4js.getLogger("file");
 const clog = log4js.getLogger("console");
 const fltxLog = log4js.getLogger("flashloanTxFile");
-import {ITwoSwaps, ISwapPairRoutes, IRouterToAmount, IToRate, ISwapRoutes, ISwap, IToken, ItfHop, IRouter, ItfTrade} from "../interfaces";
-import {BigNumber, ethers} from "ethers";
+import {IToken, ItfHop, ItfTrade} from "../interfaces";
 import {getSwapRateByHop} from "../uniswap/uniswapPrice"
 import {PCKFlashloanExecutor} from "../flashloan/FlashloanExecutor";
 import {PCKFLBConfig} from "../config";
 import {Strategy} from "./Strategy";
-import {getBigNumber, formatTime} from "../utility";
-import {ERC20_TOKEN, SWAP_ROUTER} from "../addresses";
+import {formatTime} from "../utility";
 import {PCKWeb3Handler} from "../utils/Web3Handler";
-
 
 
 export class ParallelMultiTradesStrategy extends Strategy {
@@ -272,7 +269,7 @@ export class ParallelMultiTradesStrategy extends Strategy {
                     this.prcStartTime = prcStartTime;
                     this.prcEndTime = prcEndTime;
                     this.prcRate = rateForThisTrade;
-                    fltxLog.debug(`PMTS: |@[${PCKFLBConfig.currentBlkNumber}T${formatTime(this.blkStartTime)}->${formatTime(this.blkEndTime)}]|price:[${formatTime(this.prcStartTime)}->${formatTime(this.prcEndTime)}]|%[${this.prcRate.toFixed(6)}]`);
+                    fltxLog.debug(`PMTS.opp:|@[${PCKFLBConfig.currentBlkNumber}]|T[${formatTime(this.blkStartTime)}->${formatTime(this.blkEndTime)}]|price:[${formatTime(this.prcStartTime)}->${formatTime(this.prcEndTime)}]|%[${this.prcRate.toFixed(6)}]`);
                 }
                 let isProfit = rateForThisTrade > this.isProfitRate;
                 let isProfitStr = isProfit ? "t" : "f";
@@ -305,8 +302,21 @@ export class ParallelMultiTradesStrategy extends Strategy {
                 } else {
                     this.previousFlashloanExecutedRate = highestRate;
                     flog.debug(`PMTS.11.0: highest%:${highestRate.toFixed(6)}; will execute flashloan for this trade;`);
-                    this.flStartTime = Date.now();
-                    let [resultsStr, txHash] = await PCKFlashloanExecutor.executeFlashloanTrade(highestRateTrade!);
+                    let flStartTime = Date.now();
+                    let callbackTransactionSubmitted = (resultsStr:string, txHash:string) => {
+                        let flSubmittedTime = Date.now();
+                        flog.debug(`PMTS.callbackTransactionSubmitted: resultsStr:${resultsStr}; txHash:${txHash};`);
+                        //fltxLog.debug(`PMTS: |@[${PCKFLBConfig.currentBlkNumber}T${formatTime(this.blkStartTime)}->${formatTime(this.blkEndTime)}]|price:[${formatTime(this.prcStartTime)}->${formatTime(this.prcEndTime)}]|%[${this.prcRate.toFixed(6)}]`);
+                        fltxLog.debug(`PMTS.sub:|@[${PCKFLBConfig.currentBlkNumber}]|txn:[${txHash}]|T[${formatTime(flStartTime)}->${formatTime(flSubmittedTime)}]|%[${highestRate.toFixed(6)}]|r[${resultsStr}]`);
+                    };
+                    let callbackTransactionBroadcasted = (resultsStr:string, txHash:string) => {
+                        let flBroadcastedTime = Date.now();
+                        flog.debug(`PMTS.callbackTransactionBroadcasted: resultsStr:${resultsStr};`);
+                        fltxLog.debug(`PMTS.bct:|@[${PCKFLBConfig.currentBlkNumber}]|txn:[${txHash}]|T[${formatTime(flBroadcastedTime)}]|%[${highestRate.toFixed(6)}]|r[${resultsStr}]`);
+                    };
+                    //this.flStartTime = Date.now();
+                    PCKFlashloanExecutor.executeFlashloanTrade(highestRateTrade!, callbackTransactionSubmitted, callbackTransactionBroadcasted);
+                    /*
                     if (resultsStr == "EXECUTED") {
                         this.flSubmittedTime = Date.now();
                         flog.debug(`PMTS.12.0: flashloan executor called, txHash:${txHash}; results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);                        
@@ -315,7 +325,7 @@ export class ParallelMultiTradesStrategy extends Strategy {
                     } else {
                         flog.debug(`PMTS.13.0: flashloan executor called but not executed, results:${resultsStr}; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
                     }
-                    
+                    */
                 }
             }
             if (this.isRefreshOnce) {

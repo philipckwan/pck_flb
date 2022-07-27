@@ -3,6 +3,8 @@
 -similar time limit concept to limit flashloan execution, if over time, highly consider to cancel the transaction if possible
 -need to reintroduce the exchange amount by regular updating, otherwise it will out-sync and cannot detect opportunity
 DONE(v2.13)-consolidate logging of opportunity detected to flashloan executed
+-uniswapV3 DAI:WETH seems to have a lower fee pool, consider to replace that
+DONE(v2.14)-minor update to the flashloan_tx log
 
 
 resolved:

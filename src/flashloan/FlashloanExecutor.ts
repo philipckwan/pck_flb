@@ -71,15 +71,19 @@ class FlashloanExecutor {
     }
     
 
-    public async executeFlashloanTrade(trade:ItfTrade):Promise<[string, string]> {
+    public async executeFlashloanTrade(trade:ItfTrade, callbackTransactionSubmitted:Function, callbackTransactionBroadcasted:Function):Promise<void>{
       let txHash = "n/a";
       if (PCKFLBConfig.remainingFlashloanTries <= 0) {
         flog.debug(`FlEx.executeFlashloanTrade: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
-        return ["NOT EXECUTED", txHash];
+        callbackTransactionSubmitted("NOT EXECUTED", "n/a");
+        return;
+        //return ["NOT EXECUTED", txHash];
       }
       if (this.isBusy) {
         flog.debug(`FlEx.executeFlashloanTrade: isBusy:${this.isBusy}; skipping this flashloan execution...`);
-        return ["BUSY", txHash];
+        callbackTransactionSubmitted("BUSY", "n/a");
+        return;
+        //return ["BUSY", txHash];
       }
       let startTime = Date.now();
       this.isBusy = true;
@@ -97,12 +101,13 @@ class FlashloanExecutor {
       if (executionGasPrice > PCKFLBConfig.gasPriceLimit) {
         flog.debug(`FlEx.executeFlashloanTrade: gasPrice too high, will not execute flashloan; executionGasPrice:${executionGasPrice};`);
         this.isBusy = false;
-        return ["NOT EXECUTED", txHash];
+        callbackTransactionSubmitted("NOT EXECUTED", "n/a");
+        return;
+        //return ["NOT EXECUTED", txHash];
       }
 
       flog.debug(`FlEx.executeFlashloanTrade: about to flashloan (v2)...; executionGasPrice:${executionGasPrice};`);
       let results = "EXECUTING";
-      
       try {
         let tx = await this.connectedFlashloanContract.dodoFlashLoan(params, {
           gasLimit: PCKFLBConfig.gasLimit,
@@ -116,13 +121,16 @@ class FlashloanExecutor {
         PCKFLBConfig.remainingFlashloanTries--;
         results = "EXECUTED";
         this.isBusy = false;
-        let flWaitStartTime = Date.now();
+        callbackTransactionSubmitted(results, txHash);
+
+        //let flWaitStartTime = Date.now();
         let txReceipt = await tx.wait();
-        let flWaitEndTime = Date.now();
+        //let flWaitEndTime = Date.now();
         flog.debug(`FlEx.executeFlashloanTrade: flashloan confirmed; txReceipt -----BELOW-----`);
         flog.debug(txReceipt);
         flog.debug(`FlEx.executeFlashloanTrade: flashloan confirmed; txReceipt -----ABOVE-----`);
-        fltxLog.debug(`FLEX: |@[${PCKFLBConfig.currentBlkNumber}]|txn:[${txHash}]|[${formatTime(flWaitStartTime)}->${formatTime(flWaitEndTime)}]`);
+        results = "BROADCASTED";
+        //fltxLog.debug(`FLEX: |@[${PCKFLBConfig.currentBlkNumber}]|txn:[${txHash}]|[${formatTime(flWaitStartTime)}->${formatTime(flWaitEndTime)}]`);
       } catch (ex) {
         let msg = `FlEx.executeFlashloanTrade: ERROR;`;
         this.isBusy = false;
@@ -130,121 +138,14 @@ class FlashloanExecutor {
         flog.error(msg);
         flog.error(ex);
         results = "ERROR";
+      } finally {
+        callbackTransactionBroadcasted(results, txHash);
       }
-      return [results, txHash];
+      flog.error(`FlEx.executedFlashloanTrade: END;`);
+      return;
     }
 
-    public async executeFlashloanPair(firstSwap:ISwapPairRoutes, firstRouteIdx:number, secondSwap:ISwapPairRoutes, secondRouteIdx:number) : Promise<string> {
-        if (PCKFLBConfig.remainingFlashloanTries <= 0) {
-          flog.debug(`FlEx.executeFlashloanPair: will not execute flashloan; remainingFlashloanTries:${PCKFLBConfig.remainingFlashloanTries};`);
-          return "NOT EXECUTED";
-        }
-        if (this.isBusy) {
-          flog.debug(`FlEx.executeFlashloanPair: will not execute flashloan, another flashloan is in progress;`);
-          return "BUSY";
-        }
-        this.isBusy = true;
-
-        let flashloanPool = this.getLendingPool(PCKFLBConfig.baseToken);
-        let bnLoanAmount = getBigNumber(PCKFLBConfig.baseToken.amountForSwap, PCKFLBConfig.baseToken.decimals);
-        let firstToToken = firstSwap.toToken;
-        let firstRoute = firstSwap.routerToAmountList[firstRouteIdx];
-        let firstRouteProtocol = firstRoute.router.protocol;
-
-        let secondFromToken = secondSwap.fromToken;
-        let secondToToken = secondSwap.toToken;
-        let secondRoute = secondSwap.routerToAmountList[secondRouteIdx];
-        let secondRouteProtocol = secondRoute.router.protocol;
-
-        let params:IParams = {
-          flashLoanPool:flashloanPool,
-          loanAmount: bnLoanAmount,
-          firstRoutes:[],
-          secondRoutes:[]
-      }
-
-      let aFirstRoutes = this.toRoute(firstRouteProtocol, PCKFLBConfig.baseToken, firstToToken);
-      //let msg = `FlEx.executeFlashloan: aFirstRoutes:${JSON.stringify(aFirstRoutes)};`;
-      //clog.debug(msg);
-      //flog.debug(msg);
-      let aSecondRoutes = this.toRoute(secondRouteProtocol, secondFromToken, secondToToken);
-      //msg = `FlEx.executeFlashloan: aSecondRoutes:${JSON.stringify(aSecondRoutes)};`;
-      //clog.debug(msg);
-      //flog.debug(msg);
-      params.firstRoutes = aFirstRoutes;
-      params.secondRoutes = aSecondRoutes;
-
-      let executionGasPrice = await gasPriceCalculator.getGasPrice();
-      let gasPriceLimit = PCKFLBConfig.gasPriceLimit;
-
-      if (executionGasPrice > gasPriceLimit) {
-        flog.debug(`FlEx.executeFlashloanPair: gasPrice too high, will not execute flashloan; executionGasPrice:${executionGasPrice};`);
-        return "NOT EXECUTED";
-      }
-
-      flog.debug(`FlEx.executeFlashloanPair: about to flashloan (v2)...; executionGasPrice:${executionGasPrice};`);
-
-      let results = "NEW";
-      try {
-        let tx = await this.connectedFlashloanContract.connect(PCKWeb3Handler.web3Signer).dodoFlashLoan(params, {
-          gasLimit: PCKFLBConfig.gasLimit,
-          gasPrice: ethers.utils.parseUnits(`${executionGasPrice}`, "gwei"),
-          });
-        flog.debug(`FlEx.executeFlashloanPair: flashloan executed; tx.hash:${tx.hash};`);
-        PCKFLBConfig.remainingFlashloanTries--;
-        results = "EXECUTED";
-      } catch (ex) {
-        let msg = `FlEx.executeFlashloanPair: ERROR;`;
-        clog.error(msg);
-        flog.error(msg);
-        flog.error(ex);
-        results = "ERROR";
-      }
-      this.isBusy = false;
-      return results;
-    }
-
-    private toRoute(protocol:number, fromToken:IToken, toToken:IToken) {
-        let routes:IFlashloanRoute[] = [];
-        let aRoute:IFlashloanRoute = {
-            part:10000,
-            hops:[]
-        }
-        aRoute.hops = this.toHops(protocol, fromToken, toToken);
-        routes.push(aRoute);
-        return routes;
-    }
-
-    private toHops(protocol:number, fromToken:IToken, toToken:IToken) {
-        let hops:IHop[] = [];
-        let aHop:IHop = {
-            path:[],
-            swaps:[]
-        }
-        aHop.path.push(fromToken.address);
-        aHop.path.push(toToken.address);
-        let aSwaps = this.toSwaps(protocol, fromToken, toToken);
-        aHop.swaps = aSwaps;
-        hops.push(aHop);
-        return hops;
-      };
-
-    private toSwaps(protocol:number, fromToken:IToken, toToken:IToken) {
-        let swaps:ISwap[] = [];
-        let aSwap:ISwap = {
-            protocol:0,
-            part:10000,
-            data:""
-        }
-        aSwap.protocol = protocol;
-        aSwap.data = this.getProtocolData(protocol, fromToken, toToken);
-
-        swaps.push(aSwap);
-        return swaps;
-      }
-      
-
-      private getProtocolData (protocol: number, fromToken: IToken, toToken: IToken) {
+    private getProtocolData (protocol: number, fromToken: IToken, toToken: IToken) {
         if (protocol === 0) {
           // uniswap V3
           return ethers.utils.defaultAbiCoder.encode(
@@ -258,7 +159,7 @@ class FlashloanExecutor {
             [SWAP_ROUTER[PROTOCOL_ROUTER[protocol]].address]
           );
         }
-      }
+    }
 
 }
 
