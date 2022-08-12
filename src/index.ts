@@ -6,10 +6,10 @@ import * as log4js from "log4js";
 import {PCKFLBConfig} from "./config";
 import {gasPriceCalculator} from "./utils/GasPriceCalculator";
 import {PCKWeb3Handler} from "./utils/Web3Handler";
-import {PCKPriceV3} from "./uniswap/priceV3";
-import {Strategy} from "./strategy/Strategy";
-import {ParallelMultiTradesStrategy} from "./strategy/ParallelMultiTradesStrategy";
-import {PCKFlashloanExecutor} from "./flashloan/FlashloanExecutor";
+//import {PCKPriceV3} from "./uniswap/priceV3";
+//import {quoter} from "./utils/Quoter";
+//import {ParallelMultiTradesStrategy} from "./strategy/ParallelMultiTradesStrategy";
+//import {PCKFlashloanExecutor} from "./flashloan/FlashloanExecutor";
 
 const flog=log4js.getLogger("file");
 const clog=log4js.getLogger("console");
@@ -20,18 +20,21 @@ const init = () => {
   let fileLoggerFilepath = process.env.FILE_LOGGER_FILEPATH ? process.env.FILE_LOGGER_FILEPATH : "log/pck_flb.log";
   let statsFileLoggerFilepath = process.env.STATSFILE_LOGGER_FILEPATH ? process.env.STATSFILE_LOGGER_FILEPATH : "log/pck_stats.log";
   let flashloanTxLoggerFilepath = process.env.FLASHLOAN_TX_LOGGER_FILEPATH ? process.env.FLASHLOAN_TX_LOGGER_FILEPATH : "log/pck-flashloan_tx.log";
+  let blockNumLoggerFilepath = process.env.BLOCKNUM_LOGGER_FILEPATH ? process.env.BLOCKNUM_LOGGER_FILEPATH : "log/pck-blockNum.log";
 
   log4js.configure({
     appenders: {
       file: { type:"file", filename:fileLoggerFilepath, layout:{type:"pattern", pattern:"%d{MM/ddThh:mm:ss:SSS};%m"}},
       statsFile: { type:"file", filename:statsFileLoggerFilepath, layout:{type:"pattern", pattern:"%m"}},
       flashloanTxFile: { type:"file", filename:flashloanTxLoggerFilepath, layout:{type:"pattern", pattern:"%d{MM/ddThh:mm:ss:SSS};%m"}},
+      blockNumFile: { type:"file", filename:blockNumLoggerFilepath, layout:{type:"pattern", pattern:"%d{MM/ddThh:mm:ss:SSS};%m"}},
       console: { type:"console"}
     },
     categories: {
       file: { appenders:["file"], level: fileLoggerLevel },
       statsFile: { appenders:["statsFile"], level: "debug"},
       flashloanTxFile: { appenders:["flashloanTxFile"], level: "debug"},
+      blockNumFile: { appenders:["blockNumFile"], level: "debug"},
       default: { appenders: ["console"], level: consoleLoggerLevel }
     },
   });
@@ -45,39 +48,44 @@ export const main = async () => {
 
     //loggerTest();
     let testVal = process.env.TEST_KEY;
-    let pollIntervalMSec = process.env.POLL_INTERVAL_MSEC ? parseInt(process.env.POLL_INTERVAL_MSEC) : 10000;
-    let msg = `index.main: v2.14; testVal:${testVal}; pollIntervalMSec:${pollIntervalMSec};`;
+    let msg = `index.main: v2.15; testVal:${testVal};`;
     clog.debug(msg);
     flog.debug(msg);
 
     PCKFLBConfig.init();
+    if (process.argv.length > 3) {
+      clog.debug(`index.main: extra arguments are passed in;`);
+      let arg4 = process.argv[3];
+      if (arg4 == "noFlash") {
+        clog.debug(`index.main: will not flashloan...`);
+        PCKFLBConfig.isDoFlashloan = false;
+      } else if (arg4 == "forceFlash") {
+        PCKFLBConfig.isForceFlashloan = true;
+      }
+      let arg5 = process.argv[4];
+      if (arg5 == "refreshOnce") {
+        clog.debug(`index.main: will refresh once...`);
+        PCKFLBConfig.isRefreshOnce = true;
+      }
+    }
     PCKFLBConfig.display();
 
     PCKWeb3Handler.init();
-    PCKPriceV3.init();    
+    //PCKPriceV3.init();    
+    //quoter.init(PCKWeb3Handler.localWeb3Provider, PCKWeb3Handler.alchemyWeb3Provider);
 
     gasPriceCalculator.init();
     gasPriceCalculator.display();
 
-    PCKFlashloanExecutor.init();
+    //PCKFlashloanExecutor.init(PCKWeb3Handler.localWeb3Provider, PCKWeb3Handler.alchemyWeb3Provider);
 
+    /*
     let thisStrategy:Strategy;
-    //let swapRoutesList:ISwapRoutes[] = [];
-
     if (PCKFLBConfig.arbStrategy === Strategy.MODE[Strategy.MODE.PARALLEL_V2]) {
       let msg = `index.main: ERROR - PTSS is now obsoleted;`;
       clog.error(msg);
       flog.error(msg);
       throw new Error(msg);
-      /*
-      let swapRouteListStr = process.env.SWAP_ROUTE_LIST ? process.env.SWAP_ROUTE_LIST :
-       "";
-      let swapRoutesList = parseSwapLists(swapRouteListStr, PCKFLBConfig.routers, PCKFLBConfig.baseToken.amountForSwap);
-      let ptss = new ParallelTwoSwapsStrategy();
-      //thisStrategy = new ParallelTwoSwapsStrategy();
-      await ptss.initTwoSwapsArray(swapRoutesList);
-      thisStrategy = ptss;
-      */
     } else if (PCKFLBConfig.arbStrategy === Strategy.MODE[Strategy.MODE.PMTS_V1]) {
       thisStrategy = new ParallelMultiTradesStrategy()
       thisStrategy.init();
@@ -88,29 +96,20 @@ export const main = async () => {
       throw new Error(msg);
     }
     thisStrategy.display();
+    */
 
     //log4js.shutdown(function() { process.exit(1); });
 
-    if (process.argv.length > 3) {
-      clog.debug(`index.main: extra arguments are passed in;`);
-      let arg4 = process.argv[3];
-      if (arg4 == "noFlash") {
-        clog.debug(`index.main: will not flashloan...`);
-        thisStrategy.isDoFlashloan = false;
-      } else if (arg4 == "forceFlash") {
-        thisStrategy.isForceFlashloan = true;
-      }
-      let arg5 = process.argv[4];
-      if (arg5 == "refreshOnce") {
-        clog.debug(`index.main: will refresh once...`);
-        thisStrategy.isRefreshOnce = true;
-      }
-    }
+
+
+    //PCKWeb3Handler.setFlashloanStrategy(thisStrategy);
+
+    /*
     const func = async () => {
       thisStrategy.refreshAll();
     }
     setInterval(func, pollIntervalMSec);    
-    
+    */
     console.log("index.main: END;");
 };
 

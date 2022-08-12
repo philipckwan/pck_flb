@@ -1,9 +1,8 @@
-import { sendRequest } from "./request";
 import {PCKFLBConfig} from "../config";
 import {PCKWeb3Handler} from "./Web3Handler";
 import * as log4js from "log4js";
 import {ethers} from "ethers";
-import {formatTime} from "../utility";
+import {formatTime, sendRequest} from "../utility";
 
 const flog = log4js.getLogger("file");
 const clog = log4js.getLogger("console");
@@ -173,7 +172,7 @@ class GasPriceCalculator {
 
         try {
             let startTime = Date.now();
-            const bnGasPrice = await PCKWeb3Handler.web3Provider.getGasPrice();
+            const bnGasPrice = await PCKWeb3Handler.getAvailableWeb3Provider().getGasPrice();
             let endTime = Date.now();
             let timeDiff = (endTime - startTime) / 1000;
             gasPrice = parseFloat(ethers.utils.formatUnits(bnGasPrice, "gwei"));

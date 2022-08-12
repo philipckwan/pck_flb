@@ -1,3 +1,6 @@
+/* This file is obsoleted */
+
+/*
 import {getBigNumber} from "../utility"
 import { BigNumber, ethers } from "ethers";
 import * as UniswapV2Router from "../abis/IUniswapV2Router02.json";
@@ -27,4 +30,4 @@ export const getPriceOnUniV2 = async (
     }
     return amountsOut[1];
   };
-  
+  */

@@ -1,3 +1,6 @@
+/* This file is obsoleted */
+
+/*
 import {getSwapsStrings, getBigNumber, formatDate} from "../utility";
 import {IToken, IRouter, IToRate, ISwapRoutes, ItfHop} from "../interfaces";
 import * as log4js from "log4js";
@@ -43,3 +46,4 @@ export const getSwapRate = async (fromToken : IToken, toToken : IToken, router :
     slog.debug(`${fromToken.symbol.padStart(6)}|${toToken.symbol.padStart(6)}|${router.name.padStart(18)}|${resultToAmountAndRate.toFromRate.toFixed(7).padStart(14)}|${formatDate(startTime)}|${formatDate(endTime)}|${timeDiff.toFixed(3)}`);
     return resultToAmountAndRate;
 };
+*/

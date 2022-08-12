@@ -1,3 +1,6 @@
+/* This file is obsoleted */
+
+/*
 import * as log4js from "log4js";
 const flog = log4js.getLogger("file");
 const clog = log4js.getLogger("console");
@@ -32,7 +35,7 @@ export abstract class Strategy {
     return [fromTokenSymbol, firstBestRouterName, toTokenSymbol, firstBestRouterRate, secondBestRouterName, secondBestRouterRate, finalRate] as const;
   }
 
-  public abstract refreshAll():void;
+  public abstract refreshAll(isUseLocalWeb3:boolean):void;
 
   //public abstract refresh(idx:number):void;
 
@@ -47,3 +50,4 @@ export abstract class Strategy {
 export namespace Strategy {
   export enum MODE {PARALLEL_V2, PMTS_V1}
 }
+*/

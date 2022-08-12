@@ -1,3 +1,6 @@
+/* This file is obsoleted */
+
+/*
 import { BigNumber, ethers } from "ethers";
 import { abi as QuoterABI } from "@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json";
 
@@ -100,7 +103,7 @@ class PriceV3 {
      * @param amountIn amount of token to convert from
      * @param fee pool fee
      * @returns
-     */
+     /
     public async getPriceOnUniV3 (
     tokenIn: string,
     tokenOut: string,
@@ -131,3 +134,4 @@ class PriceV3 {
 }
 
 export const PCKPriceV3 = PriceV3.Instance;
+*/

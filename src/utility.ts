@@ -1,4 +1,5 @@
 import * as log4js from "log4js";
+import axios from "axios";
 //import {erc20Token, ERC20_TOKEN, routerAddress, SWAP_ROUTER} from "./addresses";
 
 import {ethers} from "ethers";
@@ -118,3 +119,46 @@ export const compareSwap = (aSwapRoutes:ISwapRoutes) : [diffAmount:number, diffP
   return [diffAmount, diffPct];
 }
 */
+
+
+interface IRequest {
+  data: any;
+  errorMessage: string;
+}
+
+export const sendRequest = async (url: string): Promise<IRequest> => {
+  let response = await axios
+    .get(url)
+    .then((result) => {
+      return {
+        data: result.data,
+        errorMessage: "",
+      };
+    })
+    .catch((error) => {
+      if (error.response) {
+        return {
+          data: null,
+          errorMessage:
+            error.response.status +
+            ": " +
+            error.response.statusText +
+            " (" +
+            error.response.data.error +
+            ")",
+        };
+      } else if (error.request) {
+        return {
+          data: null,
+          errorMessage: "Error: No response was received",
+        };
+      } else {
+        return {
+          data: null,
+          errorMessage: "Error: " + error.message,
+        };
+      }
+    });
+
+  return response;
+};

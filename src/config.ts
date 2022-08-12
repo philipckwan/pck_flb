@@ -25,9 +25,8 @@ class Config
     public remainingFlashloanTries:number;
     public isInited:boolean = false;
     public polygonAPIKey:string;
-    public flashloanExecutionThresholdUSDx:number;
     public privateKey:string;
-    public web3RPCURL:string;
+    //public web3RPCURL:string;
     public flashloanContractAddress:string;
     public getGasPriceField:string;
     public isUseRecentGasPrice:boolean;
@@ -35,8 +34,21 @@ class Config
     public baseToken:IToken;
     public tradeTokens:IToken[] = [];
     public routers:IRouter[] = [];
-    public currentBlkNumber:number = 0;
+    //public currentBlkNumber:number = 0;
 
+    public alchemyWeb3URL:string;
+    public alchemyBlockNumPollIntervalMsec:number;
+    public alchemyBlockNumPollEnabled:boolean = false;
+    public alchemyFlashloanCheckEnabled:boolean = false;
+    public localWeb3URL:string;
+    public localBlockNumPollIntervalMsec:number;
+    public localBlockNumPollEnabled:boolean = false;
+    public localFlashloanCheckEnabled:boolean = false;
+    public localBlockNumSkewTolerance:number;
+
+    public isDoFlashloan:boolean = true;
+    public isForceFlashloan:boolean = false;
+    public isRefreshOnce:boolean = false;
 
     public init() {
         if (this.isInited) {
@@ -72,9 +84,7 @@ class Config
         this.remainingFlashloanTries = process.env.MAX_NUM_SUCCESSFUL_FLASHLOAN ? parseInt(process.env.MAX_NUM_SUCCESSFUL_FLASHLOAN) : 0;
         this.polygonAPIKey = process.env.POLYGON_API_KEY ? process.env.POLYGON_API_KEY : "abcdefgh";
         
-        this.flashloanExecutionThresholdUSDx = process.env.FLASHLOAN_EXECUTE_THRESHOLD_USDX ? parseInt(process.env.FLASHLOAN_EXECUTE_THRESHOLD_USDX) : 10;
-
-        this.web3RPCURL = process.env.WEB3_RPC_URL ? process.env.WEB3_RPC_URL : "";
+        //this.web3RPCURL = process.env.WEB3_RPC_URL ? process.env.WEB3_RPC_URL : "";
         this.privateKey = process.env.PRIVATE_KEY ? process.env.PRIVATE_KEY : "";
         this.flashloanContractAddress = process.env.FLASHLOAN_CONTRACT_ADDRESS ? process.env.FLASHLOAN_CONTRACT_ADDRESS : "";
 
@@ -98,7 +108,19 @@ class Config
 
         let routersListStr = process.env.ROUTERS_LIST ? process.env.ROUTERS_LIST : "";
         this.routers = parseRouterLists(routersListStr);
-        
+
+        this.alchemyWeb3URL = process.env.ALCHEMY_RPC_URL ? process.env.ALCHEMY_RPC_URL : "";
+        this.alchemyBlockNumPollIntervalMsec = process.env.ALCHEMY_BLOCKNUM_POLL_INTERVAL_MSEC ? parseInt(process.env.ALCHEMY_BLOCKNUM_POLL_INTERVAL_MSEC) : 2000;
+        this.alchemyBlockNumPollEnabled = process.env.ALCHEMY_BLOCKNUM_POLL_ENABLED ? process.env.ALCHEMY_BLOCKNUM_POLL_ENABLED  === "true": false;
+        this.alchemyFlashloanCheckEnabled = process.env.ALCHEMY_FLASHLOAN_CHECK_ENABLED ? process.env.ALCHEMY_FLASHLOAN_CHECK_ENABLED  === "true": false;
+
+        this.localWeb3URL = process.env.LOCAL_RPC_URL ? process.env.LOCAL_RPC_URL : "";
+        this.localBlockNumPollIntervalMsec = process.env.LOCAL_BLOCKNUM_POLL_INTERVAL_MSEC ? parseInt(process.env.LOCAL_BLOCKNUM_POLL_INTERVAL_MSEC) : 2000;
+        this.localBlockNumPollEnabled = process.env.LOCAL_BLOCKNUM_POLL_ENABLED ? process.env.LOCAL_BLOCKNUM_POLL_ENABLED  === "true": false;
+        this.localFlashloanCheckEnabled = process.env.LOCAL_FLASHLOAN_CHECK_ENABLED ? process.env.LOCAL_FLASHLOAN_CHECK_ENABLED  === "true": false;
+        this.localBlockNumSkewTolerance = process.env.LOCAL_BLOCKNUM_SKEW_TOLERANCE ? parseInt(process.env.LOCAL_BLOCKNUM_SKEW_TOLERANCE) : 10;
+
+
         let msg = `Config.init: DONE;`;
         clog.info(msg);
         flog.info(msg);
@@ -111,11 +133,27 @@ class Config
         clog.debug(msg);
         flog.debug(msg);
 
-        msg=`Config.display: remainingFlashloanTries:${this.remainingFlashloanTries}; polygonAPIKey:${this.polygonAPIKey}; flashloanExecutionThresholdUSDx:${this.flashloanExecutionThresholdUSDx};`;
+        msg=`Config.display: remainingFlashloanTries:${this.remainingFlashloanTries}; polygonAPIKey:${this.polygonAPIKey};`;
         clog.debug(msg);
         flog.debug(msg);
 
-        msg=`Config.display: arbStrategy:${this.arbStrategy}; web3RPCURL:${this.web3RPCURL}; privateKey(partial):${this.privateKey.substring(0,6)}...; flashloanContractAddress:${this.flashloanContractAddress};`;
+        msg=`Config.display: arbStrategy:${this.arbStrategy}; privateKey(partial):${this.privateKey.substring(0,6)}...; flashloanContractAddress:${this.flashloanContractAddress};`;
+        clog.debug(msg);
+        flog.debug(msg);
+
+        msg=`Config.display: alchemyWeb3URL:${this.alchemyWeb3URL}; alchemyBlockNumPollIntervalMsec:${this.alchemyBlockNumPollIntervalMsec}; alchemyBlockNumPollEnabled:${this.alchemyBlockNumPollEnabled}; alchemyFlashloanCheckEnabled:${this.alchemyFlashloanCheckEnabled};`;
+        clog.debug(msg);
+        flog.debug(msg);
+
+        msg=`Config.display: localWeb3URL:${this.localWeb3URL}; localBlockNumPollIntervalMsec:${this.localBlockNumPollIntervalMsec}; localBlockNumPollEnabled:${this.localBlockNumPollEnabled}; localFlashloanCheckEnabled:${this.localFlashloanCheckEnabled};`;
+        clog.debug(msg);
+        flog.debug(msg);
+
+        msg=`Config.display: localBlockNumSkewTolerance:${this.localBlockNumSkewTolerance};`;
+        clog.debug(msg);
+        flog.debug(msg);
+
+        msg=`Config.display: isDoFlashloan:${this.isDoFlashloan}; isForceFlashloan: ${this.isForceFlashloan}; isRefreshOnce:${this.isRefreshOnce};`;
         clog.debug(msg);
         flog.debug(msg);
 
