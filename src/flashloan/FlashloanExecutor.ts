@@ -52,7 +52,8 @@ export class FlashloanExecutor {
         FlashloanJsonV2.abi,
         web3Provider
       );
-      this.connectedFLContract = flContract.connect(PCKWeb3Handler.localWeb3Signer);
+      let web3Signer = new ethers.Wallet(PCKFLBConfig.privateKey, web3Provider);
+      this.connectedFLContract = flContract.connect(web3Signer);
 
       msg = `FlEx.init: [${this.name}]; DONE;`;
       clog.info(msg);

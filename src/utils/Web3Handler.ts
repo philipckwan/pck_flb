@@ -24,13 +24,11 @@ class Web3Handler {
     //public web3Signer:ethers.Wallet;
     public alchemyPMTS:ParallelMultiTradesStrategy;
     public alchemyWeb3Provider:ethers.providers.StaticJsonRpcProvider;
-    public alchemyWeb3Signer:ethers.Wallet;
     public alchemyCurrentBlockNum:number = -1;
     private alchemyCurrentBlockStartTime:number = -1;
 
     public localPMTS:ParallelMultiTradesStrategy;
     public localWeb3Provider:ethers.providers.StaticJsonRpcProvider;
-    public localWeb3Signer:ethers.Wallet;
     public localCurrentBlockNum:number = -1;
     private localCurrentBlockStartTime:number = -1;
 
@@ -48,12 +46,10 @@ class Web3Handler {
 
         this.alchemyPMTS = new ParallelMultiTradesStrategy(ParallelMultiTradesStrategy.ALCMY);
         this.alchemyWeb3Provider = new ethers.providers.StaticJsonRpcProvider(PCKFLBConfig.alchemyWeb3URL);
-        this.alchemyWeb3Signer = new ethers.Wallet(PCKFLBConfig.privateKey, this.alchemyWeb3Provider);
         this.alchemyPMTS.init(this.alchemyWeb3Provider);
 
         this.localPMTS = new ParallelMultiTradesStrategy(ParallelMultiTradesStrategy.LOCAL);
         this.localWeb3Provider = new ethers.providers.StaticJsonRpcProvider(PCKFLBConfig.localWeb3URL);
-        this.localWeb3Signer = new ethers.Wallet(PCKFLBConfig.privateKey, this.localWeb3Provider);
         this.localPMTS.init(this.localWeb3Provider);
 
         if (PCKFLBConfig.alchemyBlockNumPollEnabled) {

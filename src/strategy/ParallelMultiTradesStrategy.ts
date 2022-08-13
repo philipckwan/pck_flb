@@ -34,8 +34,8 @@ export class ParallelMultiTradesStrategy {
     private swapPairs = new Map<string,ItfHop>();
     private trades:ItfTrade[] = [];
     //public blkNumber:number = 0;
-    private blkStartTime:number = 0;
-    private blkEndTime:number = 0;
+    //private blkStartTime:number = 0;
+    //private blkEndTime:number = 0;
     private prcStartTime:number = 0;
     private prcEndTime:number = 0;
     private prcRate:number = 0;
@@ -297,7 +297,7 @@ export class ParallelMultiTradesStrategy {
                     this.prcStartTime = prcStartTime;
                     this.prcEndTime = prcEndTime;
                     this.prcRate = rateForThisTrade;
-                    fltxLog.debug(`PMTS.opp:[${this.name}]|@[${blockNum}]|T[${formatTime(this.blkStartTime)}->${formatTime(this.blkEndTime)}]|price:[${formatTime(this.prcStartTime)}->${formatTime(this.prcEndTime)}]|%[${this.prcRate.toFixed(6)}]`);
+                    fltxLog.debug(`PMTS.opp:[${this.name}]|@[${blockNum}]|priceT:[${formatTime(this.prcStartTime)}->${formatTime(this.prcEndTime)}]|%[${this.prcRate.toFixed(6)}]`);
                 }
                 let isProfit = rateForThisTrade > this.isProfitRate;
                 let isProfitStr = isProfit ? "t" : "f";
