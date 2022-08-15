@@ -9,6 +9,7 @@ import {PCKFLBConfig} from "../config";
 import {formatTime} from "../utility";
 import {PCKWeb3Handler} from "../utils/Web3Handler";
 import {ethers} from "ethers";
+import { isThisTypeNode } from "typescript";
 
 
 export class ParallelMultiTradesStrategy {
@@ -39,10 +40,13 @@ export class ParallelMultiTradesStrategy {
     private prcStartTime:number = 0;
     private prcEndTime:number = 0;
     private prcRate:number = 0;
+    private static highestPriceCheckedBlockNum:number = -1;
+
     //private flStartTime:number = 0;
     //private flSubmittedTime:number = 0;
     private quoter:Quoter;
     private flExecutor:FlashloanExecutor;
+
 
     public display():void {
         flog.debug(`PMTS.display: name:${this.name};`);
@@ -210,42 +214,18 @@ export class ParallelMultiTradesStrategy {
 
     public async refreshAll(blockNum:number):Promise<void> {
         if (this.isBusy) {
-            flog.debug(`PMTS.1.0: [${this.name}]; isBusy:${this.isBusy}; skipping this refresh check...`);
+            flog.debug(`PMTS.1.0: [${this.name}]; skipping this price check as isBusy:${this.isBusy};`);
             return;
+        }
+        if (blockNum <= ParallelMultiTradesStrategy.highestPriceCheckedBlockNum) {
+            flog.debug(`PMTS.2.0: [${this.name}]; skipping this price check as blockNum:[$${blockNum}] <= highestPriceCheckedBlockNum:[${ParallelMultiTradesStrategy.highestPriceCheckedBlockNum}];`);
         }
         this.isBusy = true;
         //let startTime = Date.now();
 
         // for all swapPairs, refresh the rates and populate each's maximum return rate
         let allSwapPairPromises = [];
-        //flog.debug(`PMTS.refreshAll: swapPairs.size:${this.swapPairs.size};`);
 
-        // will attempt to getBlockNumber and gasPrice here for now...
-        /*
-        try {
-            let blkStartTime = Date.now();
-            let currentBlockNumberPromise = PCKWeb3Handler.web3Provider.getBlockNumber();
-            Promise.resolve(currentBlockNumberPromise).then(async (currentBlockNumber) => {
-                let blkEndTime = Date.now();
-                let blkTimeDiff = (blkEndTime - blkStartTime) / 1000;
-                flog.debug(`PMTS.2.0: crntBlk#:[${currentBlockNumber}]; T:[${blkTimeDiff}|${formatTime(blkStartTime)}->${formatTime(blkEndTime)}];`);
-                PCKFLBConfig.currentBlkNumber = currentBlockNumber;
-                this.blkStartTime = blkStartTime;
-                this.blkEndTime = blkEndTime;
-            }).catch((error) => {
-                flog.error(`PMTS.3.0: ERROR - in getting currentBlockNumber promise;`);
-                flog.error(error);
-            });
-        } catch (ex) {
-            flog.error(`PMTS.4.0: ERROR - in getting currentBlockNumber;`);
-            flog.error(ex);
-        }     
-        */
-
-        // check the block time in both alchemy vs local, pick the one with the higher block height to do price check, default to local
-        //let [highestCurrentBlockNum, isUseLocalWeb3FromHandler] = PCKWeb3Handler.getHighestCurrentBlockNumber();
-        //flog.debug(`PMTS.1.8: alchemyBlockNum: ${PCKWeb3Handler.alchemyCurrentBlockNum}; localBlockNum: ${PCKWeb3Handler.localCurrentBlockNum};`);
-        //flog.debug(`PMTS.2.0: highestCurrentBlockNum: ${highestCurrentBlockNum}; isUseLocalWeb3FromHandler:${isUseLocalWeb3FromHandler};`);
         let prcStartTime = Date.now();
         for (let aSwapPair of this.swapPairs.values()){
             for (let aSwapRouter of PCKFLBConfig.routers) {
@@ -257,6 +237,9 @@ export class ParallelMultiTradesStrategy {
             aSwapPair.maxRate = 0;
         }
         Promise.all(allSwapPairPromises).then(async (resultsHopAndRates) => {
+            if (blockNum > ParallelMultiTradesStrategy.highestPriceCheckedBlockNum) {
+                ParallelMultiTradesStrategy.highestPriceCheckedBlockNum = blockNum;
+            }
             //flog.debug(`PMTS.refreshAll: resultsHopAndRates.length:${resultsHopAndRates.length};`);
             for (let i = 0; i < resultsHopAndRates.length; i++) {
                 let [hop, rate] = resultsHopAndRates[i];

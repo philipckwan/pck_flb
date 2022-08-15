@@ -32,6 +32,7 @@ class Web3Handler {
     public localCurrentBlockNum:number = -1;
     private localCurrentBlockStartTime:number = -1;
 
+    private previousBlockEndTime:number = -1;
 
     public init():void {
         if (this.isInited) {
@@ -86,7 +87,7 @@ class Web3Handler {
         return this.alchemyCurrentBlockNum;
     }
 
-    public getHighestCurrentBlockNumber():number {
+    public getHighestBlockNumber():number {
         return this.localCurrentBlockNum >= this.alchemyCurrentBlockNum ? this.localCurrentBlockNum : this.alchemyCurrentBlockNum;
     }
 
@@ -98,6 +99,7 @@ class Web3Handler {
     private updateAlchemyBlockNum(blockNum:number, blockStartTime:number):boolean {
         let isUpdated:boolean = false;
         if (blockNum > this.alchemyCurrentBlockNum) {
+            this.updatePreviousBlockEndTime(blockNum, blockStartTime);
             isUpdated = true;
             this.alchemyCurrentBlockNum = blockNum;
             this.alchemyCurrentBlockStartTime = blockStartTime;
@@ -110,10 +112,25 @@ class Web3Handler {
     private updateLocalBlockNum(blockNum:number, blockStartTime:number):boolean {
         let isUpdated:boolean = false;
         if (blockNum > this.localCurrentBlockNum) {
+            this.updatePreviousBlockEndTime(blockNum, blockStartTime);
             isUpdated = true;
             this.localCurrentBlockNum = blockNum;
             this.localCurrentBlockStartTime = blockStartTime;
             blkNumLog.debug(`LOCAL|@[${this.localCurrentBlockNum}]|T[${formatTime(this.localCurrentBlockStartTime)}]`);
+        }
+        return isUpdated;
+    }
+
+    // whichever (LOCAL vs ALCMY) get the latest highest block number, means the previous block already end
+    // thus, register its end time with the latest highest block start time
+    private updatePreviousBlockEndTime(highestInstanceBlockNum:number, highestInstanceBlockStartTime:number):boolean {
+        let isUpdated:boolean = false;
+        let highestBlockNumber = this.getHighestBlockNumber();
+        if (highestInstanceBlockNum > highestBlockNumber) {
+            let previousPreviousBlockEndTime = this.previousBlockEndTime;
+            this.previousBlockEndTime = highestInstanceBlockStartTime;
+            let previousBlockDuration = ((this.previousBlockEndTime - previousPreviousBlockEndTime) / 1000).toFixed(3);
+            blkNumLog.debug(`END  |@[${highestBlockNumber}]|T[${previousBlockDuration}|${formatTime(previousPreviousBlockEndTime)}..${formatTime(this.previousBlockEndTime)}]`);
         }
         return isUpdated;
     }

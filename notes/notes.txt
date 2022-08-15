@@ -10,8 +10,13 @@ DONE(v2.14)-minor update to the flashloan_tx log
 DONE(v2.15)-HIGH PRIORITY; first fequent check for blocktime udpated, then issue arb check
 -skew block num handling (e.g. local still FL if it is only 0.14 sec or less behind ALCMY)
 -block num check sleep time (i.e. no need to check block number for the next 1.5 sec if just recently updated block num)
--if local already finished price check at block X, but alchemy still not yet start price check at block X, then alchemy can simply skip this block's price check
+DONE(v2.17)-if local already finished price check at block X, but alchemy still not yet start price check at block X, then alchemy can simply skip this block's price check
 DONE(v2.16)-BUG: FlashloanExecutor, line 55,       this.connectedFLContract = flContract.connect(PCKWeb3Handler.localWeb3Signer);
+-if ALCMY took too long to execute FL, should LOCAL override the FL (i.e. with higher gasPrice?); 
+ probably won't happen as now only one of PMTS will do price check for a block
+  NO, the average case should be both PMTS will start the price check for a block, but likely LOCAL will finish sooner
+ maybe let the ALCMY delegate the FL to LOCAL web3Provider?
+
 
 resolved:
 DONE(v2.10)-consider to rewrite the flashloan contract to reduce gas used
