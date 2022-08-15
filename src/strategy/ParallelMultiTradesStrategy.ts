@@ -219,6 +219,7 @@ export class ParallelMultiTradesStrategy {
         }
         if (blockNum <= ParallelMultiTradesStrategy.highestPriceCheckedBlockNum) {
             flog.debug(`PMTS.2.0: [${this.name}]; skipping this price check as blockNum:[$${blockNum}] <= highestPriceCheckedBlockNum:[${ParallelMultiTradesStrategy.highestPriceCheckedBlockNum}];`);
+            return;
         }
         this.isBusy = true;
         //let startTime = Date.now();

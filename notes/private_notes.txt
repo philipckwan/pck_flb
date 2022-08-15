@@ -1,0 +1,8 @@
+run both alchemy API and local API blocknumber check
+ -say every 0.1 sec
+-whichever one first detected an update (blocknumber + 1)
+ -then issue arb check from that API
+-prefer to run the API check from local node as its API response time is faster
+ -but fall back to alchemy if it detects blocknumber update first
+-no need to run any more price check if blocknumber didn't change
+-or, do not price check from alchemy API, and do not flashloan if node local blocktime is delayed (by too much, i.e. no longer same block)
