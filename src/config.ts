@@ -40,6 +40,10 @@ class Config
     public alchemyBlockNumPollIntervalMsec:number;
     public alchemyBlockNumPollEnabled:boolean = false;
     public alchemyFlashloanCheckEnabled:boolean = false;
+    public quicknodeWeb3URL:string;
+    public quicknodeBlockNumPollIntervalMsec:number;
+    public quicknodeBlockNumPollEnabled:boolean = false;
+    public quicknodeFlashloanCheckEnabled:boolean = false;
     public localWeb3URL:string;
     public localBlockNumPollIntervalMsec:number;
     public localBlockNumPollEnabled:boolean = false;
@@ -114,6 +118,11 @@ class Config
         this.alchemyBlockNumPollEnabled = process.env.ALCHEMY_BLOCKNUM_POLL_ENABLED ? process.env.ALCHEMY_BLOCKNUM_POLL_ENABLED  === "true": false;
         this.alchemyFlashloanCheckEnabled = process.env.ALCHEMY_FLASHLOAN_CHECK_ENABLED ? process.env.ALCHEMY_FLASHLOAN_CHECK_ENABLED  === "true": false;
 
+        this.quicknodeWeb3URL = process.env.QUICKNODE_RPC_URL ? process.env.QUICKNODE_RPC_URL : "";
+        this.quicknodeBlockNumPollIntervalMsec = process.env.QUICKNODE_BLOCKNUM_POLL_INTERVAL_MSEC ? parseInt(process.env.QUICKNODE_BLOCKNUM_POLL_INTERVAL_MSEC) : 2000;
+        this.quicknodeBlockNumPollEnabled = process.env.QUICKNODE_BLOCKNUM_POLL_ENABLED ? process.env.QUICKNODE_BLOCKNUM_POLL_ENABLED  === "true": false;
+        this.quicknodeFlashloanCheckEnabled = process.env.QUICKNODE_FLASHLOAN_CHECK_ENABLED ? process.env.QUICKNODE_FLASHLOAN_CHECK_ENABLED  === "true": false;
+
         this.localWeb3URL = process.env.LOCAL_RPC_URL ? process.env.LOCAL_RPC_URL : "";
         this.localBlockNumPollIntervalMsec = process.env.LOCAL_BLOCKNUM_POLL_INTERVAL_MSEC ? parseInt(process.env.LOCAL_BLOCKNUM_POLL_INTERVAL_MSEC) : 2000;
         this.localBlockNumPollEnabled = process.env.LOCAL_BLOCKNUM_POLL_ENABLED ? process.env.LOCAL_BLOCKNUM_POLL_ENABLED  === "true": false;
@@ -141,15 +150,19 @@ class Config
         clog.debug(msg);
         flog.debug(msg);
 
-        msg=`Config.display: alchemyWeb3URL:${this.alchemyWeb3URL}; alchemyBlockNumPollIntervalMsec:${this.alchemyBlockNumPollIntervalMsec}; alchemyBlockNumPollEnabled:${this.alchemyBlockNumPollEnabled}; alchemyFlashloanCheckEnabled:${this.alchemyFlashloanCheckEnabled};`;
+        msg=`Config.display: ALCMY: web3URL:${this.alchemyWeb3URL}; blockNumPollIntervalMsec:${this.alchemyBlockNumPollIntervalMsec}; blockNumPollEnabled:${this.alchemyBlockNumPollEnabled}; flashloanCheckEnabled:${this.alchemyFlashloanCheckEnabled};`;
         clog.debug(msg);
         flog.debug(msg);
 
-        msg=`Config.display: localWeb3URL:${this.localWeb3URL}; localBlockNumPollIntervalMsec:${this.localBlockNumPollIntervalMsec}; localBlockNumPollEnabled:${this.localBlockNumPollEnabled}; localFlashloanCheckEnabled:${this.localFlashloanCheckEnabled};`;
+        msg=`Config.display: QUIKN: web3URL:${this.quicknodeWeb3URL}; blockNumPollIntervalMsec:${this.quicknodeBlockNumPollIntervalMsec}; blockNumPollEnabled:${this.quicknodeBlockNumPollEnabled}; flashloanCheckEnabled:${this.quicknodeFlashloanCheckEnabled};`;
         clog.debug(msg);
         flog.debug(msg);
 
-        msg=`Config.display: localBlockNumSkewTolerance:${this.localBlockNumSkewTolerance};`;
+        msg=`Config.display: LOCAL: web3URL:${this.localWeb3URL}; blockNumPollIntervalMsec:${this.localBlockNumPollIntervalMsec}; blockNumPollEnabled:${this.localBlockNumPollEnabled}; flashloanCheckEnabled:${this.localFlashloanCheckEnabled};`;
+        clog.debug(msg);
+        flog.debug(msg);
+
+        msg=`Config.display: LOCAL: blockNumSkewTolerance:${this.localBlockNumSkewTolerance};`;
         clog.debug(msg);
         flog.debug(msg);
 

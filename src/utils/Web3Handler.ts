@@ -27,6 +27,11 @@ class Web3Handler {
     public alchemyCurrentBlockNum:number = -1;
     private alchemyCurrentBlockStartTime:number = -1;
 
+    public quicknodePMTS:ParallelMultiTradesStrategy;
+    public quicknodeWeb3Provider:ethers.providers.StaticJsonRpcProvider;
+    public quicknodeCurrentBlockNum:number = -1;
+    private quicknodeCurrentBlockStartTime:number = -1;
+
     public localPMTS:ParallelMultiTradesStrategy;
     public localWeb3Provider:ethers.providers.StaticJsonRpcProvider;
     public localCurrentBlockNum:number = -1;
@@ -43,21 +48,26 @@ class Web3Handler {
         }
         let msg = `Web3Handler.init: START; alchemyWeb3URL:${PCKFLBConfig.alchemyWeb3URL}; localWeb3URL:${PCKFLBConfig.localWeb3URL};`;
         clog.info(msg);
-        flog.info(msg);
-
-        this.alchemyPMTS = new ParallelMultiTradesStrategy(ParallelMultiTradesStrategy.ALCMY);
-        this.alchemyWeb3Provider = new ethers.providers.StaticJsonRpcProvider(PCKFLBConfig.alchemyWeb3URL);
-        this.alchemyPMTS.init(this.alchemyWeb3Provider);
-
-        this.localPMTS = new ParallelMultiTradesStrategy(ParallelMultiTradesStrategy.LOCAL);
-        this.localWeb3Provider = new ethers.providers.StaticJsonRpcProvider(PCKFLBConfig.localWeb3URL);
-        this.localPMTS.init(this.localWeb3Provider);
+        flog.info(msg);        
 
         if (PCKFLBConfig.alchemyBlockNumPollEnabled) {
+            this.alchemyPMTS = new ParallelMultiTradesStrategy(ParallelMultiTradesStrategy.ALCMY);
+            this.alchemyWeb3Provider = new ethers.providers.StaticJsonRpcProvider(PCKFLBConfig.alchemyWeb3URL);
+            this.alchemyPMTS.init(this.alchemyWeb3Provider);
             setInterval(() => {this.getAlchemyBlockNum()}, PCKFLBConfig.alchemyBlockNumPollIntervalMsec);
         }
 
+        if (PCKFLBConfig.quicknodeBlockNumPollEnabled) {
+            this.quicknodePMTS = new ParallelMultiTradesStrategy(ParallelMultiTradesStrategy.QUIKN);
+            this.quicknodeWeb3Provider = new ethers.providers.StaticJsonRpcProvider(PCKFLBConfig.quicknodeWeb3URL);
+            this.quicknodePMTS.init(this.quicknodeWeb3Provider);
+            setInterval(() => {this.getQuicknodeBlockNum()}, PCKFLBConfig.quicknodeBlockNumPollIntervalMsec);
+        }
+
         if (PCKFLBConfig.localBlockNumPollEnabled) {
+            this.localPMTS = new ParallelMultiTradesStrategy(ParallelMultiTradesStrategy.LOCAL);
+            this.localWeb3Provider = new ethers.providers.StaticJsonRpcProvider(PCKFLBConfig.localWeb3URL);
+            this.localPMTS.init(this.localWeb3Provider);
             setInterval(() => {this.getLocalBlockNum()}, PCKFLBConfig.localBlockNumPollIntervalMsec);
         }
 
@@ -103,7 +113,20 @@ class Web3Handler {
             isUpdated = true;
             this.alchemyCurrentBlockNum = blockNum;
             this.alchemyCurrentBlockStartTime = blockStartTime;
-            blkNumLog.debug(`ALCMY|@[${this.alchemyCurrentBlockNum}]|T[${formatTime(this.alchemyCurrentBlockStartTime)}]`);
+            blkNumLog.debug(`ALCMY       |${this.alchemyCurrentBlockNum}|        |        |T[${formatTime(this.alchemyCurrentBlockStartTime)}]`);
+        }
+        return isUpdated;
+    }
+
+    // returns true if the input blockNum is more recent than the previous blockNum
+    private updateQuicknodeBlockNum(blockNum:number, blockStartTime:number):boolean {
+        let isUpdated:boolean = false;
+        if (blockNum > this.alchemyCurrentBlockNum) {
+            this.updatePreviousBlockEndTime(blockNum, blockStartTime);
+            isUpdated = true;
+            this.alchemyCurrentBlockNum = blockNum;
+            this.alchemyCurrentBlockStartTime = blockStartTime;
+            blkNumLog.debug(`QUIKN       |        |        |${this.alchemyCurrentBlockNum}|T[${formatTime(this.alchemyCurrentBlockStartTime)}]`);
         }
         return isUpdated;
     }
@@ -116,7 +139,7 @@ class Web3Handler {
             isUpdated = true;
             this.localCurrentBlockNum = blockNum;
             this.localCurrentBlockStartTime = blockStartTime;
-            blkNumLog.debug(`LOCAL|@[${this.localCurrentBlockNum}]|T[${formatTime(this.localCurrentBlockStartTime)}]`);
+            blkNumLog.debug(`LOCAL       |        |${this.localCurrentBlockNum}|        |T[${formatTime(this.localCurrentBlockStartTime)}]`);
         }
         return isUpdated;
     }
@@ -130,7 +153,7 @@ class Web3Handler {
             let previousPreviousBlockEndTime = this.previousBlockEndTime;
             this.previousBlockEndTime = highestInstanceBlockStartTime;
             let previousBlockDuration = ((this.previousBlockEndTime - previousPreviousBlockEndTime) / 1000).toFixed(3);
-            blkNumLog.debug(`END  |@[${highestBlockNumber}]|T[${previousBlockDuration}|${formatTime(previousPreviousBlockEndTime)}..${formatTime(this.previousBlockEndTime)}]`);
+            blkNumLog.debug(`END@${highestBlockNumber}|        |        |        |T[${formatTime(previousPreviousBlockEndTime)}..${formatTime(this.previousBlockEndTime)}]|blkDur:${previousBlockDuration}|`);
         }
         return isUpdated;
     }
@@ -144,11 +167,10 @@ class Web3Handler {
                 let blkEndTime = Date.now();
                 let blkTimeDiff = (blkEndTime - blkStartTime) / 1000;
                 flog.debug(`W3H.gABN: ALCMY; crntBlk#:[${currentBlockNumber}]; T:[${blkTimeDiff}|${formatTime(blkStartTime)}->${formatTime(blkEndTime)}];`);
-                //let [highestCurrentBlockNumber, isWinnerFromLocal] = this.getHighestCurrentBlockNumber();
-                if (this.updateAlchemyBlockNum(currentBlockNumber, blkStartTime)) {
+                if (this.updateAlchemyBlockNum(currentBlockNumber, blkEndTime)) {
                     // this call gets the latest block number, will proceed to price check
                     flog.debug(`W3H.gABN: ALCMY; about to call PMTS.refreshAll; currentBlockNumber:${currentBlockNumber};`);
-                    this.alchemyPMTS.refreshAll(currentBlockNumber);
+                    this.alchemyPMTS.refreshAll(currentBlockNumber, PCKFLBConfig.alchemyFlashloanCheckEnabled);
                 }
             }).catch((error) => {
                 flog.error(`W3H.gABN: ALCMY; ERROR - in getting currentBlockNumber promise;`);
@@ -156,6 +178,30 @@ class Web3Handler {
             });
         } catch (ex) {
             flog.error(`W3H.gABN: ALCMY; ERROR - in getting currentBlockNumber;`);
+            flog.error(ex);
+        }     
+    }
+
+    private getQuicknodeBlockNum():void {
+        //flog.debug(`W3H.gIBN: 1.0`);
+        try {
+            let blkStartTime = Date.now();
+            let currentBlockNumberPromise = this.quicknodeWeb3Provider.getBlockNumber();
+            Promise.resolve(currentBlockNumberPromise).then(async (currentBlockNumber) => {
+                let blkEndTime = Date.now();
+                let blkTimeDiff = (blkEndTime - blkStartTime) / 1000;
+                flog.debug(`W3H.gIBN: QUIKN; crntBlk#:[${currentBlockNumber}]; T:[${blkTimeDiff}|${formatTime(blkStartTime)}->${formatTime(blkEndTime)}];`);                
+                if (this.updateQuicknodeBlockNum(currentBlockNumber, blkEndTime)) {
+                    // this call gets the latest block number, will proceed to price check
+                    flog.debug(`W3H.gIBN: QUIKN; about to call PMTS.refreshAll; currentBlockNumber:${currentBlockNumber};`);
+                    this.quicknodePMTS.refreshAll(currentBlockNumber, PCKFLBConfig.quicknodeFlashloanCheckEnabled);
+                }
+            }).catch((error) => {
+                flog.error(`W3H.gIBN: QUIKN; ERROR - in getting currentBlockNumber promise;`);
+                flog.error(error);
+            });
+        } catch (ex) {
+            flog.error(`W3H.gIBN: QUIKN; ERROR - in getting currentBlockNumber;`);
             flog.error(ex);
         }     
     }
@@ -170,10 +216,10 @@ class Web3Handler {
                 let blkTimeDiff = (blkEndTime - blkStartTime) / 1000;
                 flog.debug(`W3H.gLBN: LOCAL; crntBlk#:[${currentBlockNumber}]; T:[${blkTimeDiff}|${formatTime(blkStartTime)}->${formatTime(blkEndTime)}];`);
                 //let [highestCurrentBlockNumber, isWinnerFromLocal] = this.getHighestCurrentBlockNumber();
-                if (this.updateLocalBlockNum(currentBlockNumber, blkStartTime)) {
+                if (this.updateLocalBlockNum(currentBlockNumber, blkEndTime)) {
                     // this call gets the latest block number, will proceed to price check
                     flog.debug(`W3H.gLBN: LOCAL; about to call PMTS.refreshAll; currentBlockNumber:${currentBlockNumber};`);
-                    this.localPMTS.refreshAll(currentBlockNumber);
+                    this.localPMTS.refreshAll(currentBlockNumber, PCKFLBConfig.localFlashloanCheckEnabled);
                 }
             }).catch((error) => {
                 flog.error(`W3H.gLBN: LOCAL; ERROR - in getting currentBlockNumber promise;`);

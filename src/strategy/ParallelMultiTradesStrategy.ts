@@ -9,13 +9,12 @@ import {PCKFLBConfig} from "../config";
 import {formatTime} from "../utility";
 import {PCKWeb3Handler} from "../utils/Web3Handler";
 import {ethers} from "ethers";
-import { isThisTypeNode } from "typescript";
-
 
 export class ParallelMultiTradesStrategy {
 
     static readonly LOCAL = "LOCAL";
     static readonly ALCMY = "ALCMY";
+    static readonly QUIKN = "QUIKN";
 
     private name:string;
     //public isDoFlashloan:boolean = true;
@@ -212,7 +211,7 @@ export class ParallelMultiTradesStrategy {
         }
     }
 
-    public async refreshAll(blockNum:number):Promise<void> {
+    public async refreshAll(blockNum:number, isDoFlashloan:boolean):Promise<void> {
         if (this.isBusy) {
             flog.debug(`PMTS.1.0: [${this.name}]; skipping this price check as isBusy:${this.isBusy};`);
             return;
@@ -311,6 +310,8 @@ export class ParallelMultiTradesStrategy {
                     flog.debug(`PMTS.9.0: [${this.name}]; highest% is same as this.previousFlashloanExecutedRate, will not execute flashloan`);
                 } else if (!PCKFLBConfig.isDoFlashloan) {
                     flog.debug(`PMTS.10.0: [${this.name}]; PCKFLBConfig.isDoFlashloan:${PCKFLBConfig.isDoFlashloan}, will not do flashloan;`);
+                } else if (!isDoFlashloan) {
+                    flog.debug(`PMST.10.1: [${this.name}]; from argument isDoFlashloan:${isDoFlashloan}, will not do flashloan;`);
                 } else {
                     this.previousFlashloanExecutedRate = highestRate;
                     flog.debug(`PMTS.11.0: [${this.name}]; highest%:${highestRate.toFixed(6)}; will execute flashloan for this trade;`);

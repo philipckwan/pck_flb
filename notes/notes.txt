@@ -2,23 +2,30 @@
 -seems one time sushiswap price check took > 3 sec to return, becomes long pole, see 20220706 log; i.e. add a time limit to dex api check, say less than 1.5 sec
 -similar time limit concept to limit flashloan execution, if over time, highly consider to cancel the transaction if possible
 -need to reintroduce the exchange amount by regular updating, otherwise it will out-sync and cannot detect opportunity
-DONE(v2.13)-consolidate logging of opportunity detected to flashloan executed
+
 -uniswapV3 DAI:WETH seems to have a lower fee pool, consider to replace that
-DONE(v2.14)-minor update to the flashloan_tx log
+
 -add route info, gasPrice to flashloan_tx log
 -consider to adjust the isProfit rate, make it higher; or make it lower as seems the lower rate opportunities last longer? need to analyze flashloan_tx to find out
-DONE(v2.15)-HIGH PRIORITY; first fequent check for blocktime udpated, then issue arb check
 -skew block num handling (e.g. local still FL if it is only 0.14 sec or less behind ALCMY)
 -block num check sleep time (i.e. no need to check block number for the next 1.5 sec if just recently updated block num)
-DONE(v2.18)-if local already finished price check at block X, but alchemy still not yet start price check at block X, then alchemy can simply skip this block's price check
-DONE(v2.16)-BUG: FlashloanExecutor, line 55,       this.connectedFLContract = flContract.connect(PCKWeb3Handler.localWeb3Signer);
 -if ALCMY took too long to execute FL, should LOCAL override the FL (i.e. with higher gasPrice?); 
  probably won't happen as now only one of PMTS will do price check for a block
   NO, the average case should be both PMTS will start the price check for a block, but likely LOCAL will finish sooner
  maybe let the ALCMY delegate the FL to LOCAL web3Provider?
+DONE(v2.19)-consider to add more web3Provider, i.e. infura, quicknode
+-ALCMY block num check took too long to response (i.e. > 1 sec), causing mislead in block start/end time
+ make LOCAL poll more frequent, rely on ALCMY only to detect whether LOCAL has skewed for more than 1 block
+-check spreadsheet, investigate the case when 2 flashloan submitted more than 1~2 sec, with same gasPrice, ends up confirmed in same block, but the position is not back to back
 
 
 resolved:
+DONE(v2.15)-HIGH PRIORITY; first fequent check for blocktime udpated, then issue arb check
+
+DONE(v2.18)-if local already finished price check at block X, but alchemy still not yet start price check at block X, then alchemy can simply skip this block's price check
+DONE(v2.16)-BUG: FlashloanExecutor, line 55,       this.connectedFLContract = flContract.connect(PCKWeb3Handler.localWeb3Signer);
+DONE(v2.14)-minor update to the flashloan_tx log
+DONE(v2.13)-consolidate logging of opportunity detected to flashloan executed
 DONE(v2.10)-consider to rewrite the flashloan contract to reduce gas used
 DONE(v2.7)-solution: do not execute flashloan if the rate is same as previously executed rate; problem: if shortening the polling interval to be less than a block time (i.e. < 2sec), then need a way to avoid executing the same flashloan if they are detected across intervals
 DONE(v2.9)-await the tx.wait() so to capture the confirmation time
