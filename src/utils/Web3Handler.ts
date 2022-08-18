@@ -98,7 +98,8 @@ class Web3Handler {
     }
 
     public getHighestBlockNumber():number {
-        return this.localCurrentBlockNum >= this.alchemyCurrentBlockNum ? this.localCurrentBlockNum : this.alchemyCurrentBlockNum;
+        let highestBlockNumber = this.localCurrentBlockNum >= this.alchemyCurrentBlockNum ? this.localCurrentBlockNum : this.alchemyCurrentBlockNum;
+        return this.quicknodeCurrentBlockNum >= highestBlockNumber ? this.quicknodeCurrentBlockNum : highestBlockNumber;
     }
 
     public getAvailableWeb3Provider():ethers.providers.StaticJsonRpcProvider {
