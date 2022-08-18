@@ -48,7 +48,7 @@ export const main = async () => {
 
     //loggerTest();
     let testVal = process.env.TEST_KEY;
-    let msg = `index.main: v2.19; testVal:${testVal};`;
+    let msg = `index.main: v2.20; testVal:${testVal};`;
     clog.debug(msg);
     flog.debug(msg);
 

@@ -121,12 +121,12 @@ class Web3Handler {
     // returns true if the input blockNum is more recent than the previous blockNum
     private updateQuicknodeBlockNum(blockNum:number, blockStartTime:number):boolean {
         let isUpdated:boolean = false;
-        if (blockNum > this.alchemyCurrentBlockNum) {
+        if (blockNum > this.quicknodeCurrentBlockNum) {
             this.updatePreviousBlockEndTime(blockNum, blockStartTime);
             isUpdated = true;
-            this.alchemyCurrentBlockNum = blockNum;
-            this.alchemyCurrentBlockStartTime = blockStartTime;
-            blkNumLog.debug(`QUIKN       |        |        |${this.alchemyCurrentBlockNum}|T[${formatTime(this.alchemyCurrentBlockStartTime)}]`);
+            this.quicknodeCurrentBlockNum = blockNum;
+            this.quicknodeCurrentBlockStartTime = blockStartTime;
+            blkNumLog.debug(`QUIKN       |        |        |${this.quicknodeCurrentBlockNum}|T[${formatTime(this.quicknodeCurrentBlockStartTime)}]`);
         }
         return isUpdated;
     }

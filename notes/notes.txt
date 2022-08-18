@@ -2,9 +2,7 @@
 -seems one time sushiswap price check took > 3 sec to return, becomes long pole, see 20220706 log; i.e. add a time limit to dex api check, say less than 1.5 sec
 -similar time limit concept to limit flashloan execution, if over time, highly consider to cancel the transaction if possible
 -need to reintroduce the exchange amount by regular updating, otherwise it will out-sync and cannot detect opportunity
-
 -uniswapV3 DAI:WETH seems to have a lower fee pool, consider to replace that
-
 -add route info, gasPrice to flashloan_tx log
 -consider to adjust the isProfit rate, make it higher; or make it lower as seems the lower rate opportunities last longer? need to analyze flashloan_tx to find out
 -skew block num handling (e.g. local still FL if it is only 0.14 sec or less behind ALCMY)
@@ -17,7 +15,7 @@ DONE(v2.19)-consider to add more web3Provider, i.e. infura, quicknode
 -ALCMY block num check took too long to response (i.e. > 1 sec), causing mislead in block start/end time
  make LOCAL poll more frequent, rely on ALCMY only to detect whether LOCAL has skewed for more than 1 block
 -check spreadsheet, investigate the case when 2 flashloan submitted more than 1~2 sec, with same gasPrice, ends up confirmed in same block, but the position is not back to back
-
+DONE(v2.20)-bug in Web3Handler to get block number between alchemy vs quicknode
 
 resolved:
 DONE(v2.15)-HIGH PRIORITY; first fequent check for blocktime udpated, then issue arb check
