@@ -7,6 +7,7 @@ import * as log4js from "log4js";
 const flog = log4js.getLogger("file");
 const clog = log4js.getLogger("console");
 const blkNumLog = log4js.getLogger("blockNumFile");
+const blkPollLog = log4js.getLogger("blockPollFile");
 
 class Web3Handler {
     private static _instance: Web3Handler;
@@ -167,7 +168,7 @@ class Web3Handler {
             Promise.resolve(currentBlockNumberPromise).then(async (currentBlockNumber) => {
                 let blkEndTime = Date.now();
                 let blkTimeDiff = (blkEndTime - blkStartTime) / 1000;
-                flog.debug(`W3H.gABN: ALCMY; crntBlk#:[${currentBlockNumber}]; T:[${blkTimeDiff}|${formatTime(blkStartTime)}->${formatTime(blkEndTime)}];`);
+                blkPollLog.debug(`ALCMY; #[${currentBlockNumber}]; T:[${blkTimeDiff}|${formatTime(blkStartTime)}->${formatTime(blkEndTime)}];`);
                 if (this.updateAlchemyBlockNum(currentBlockNumber, blkEndTime)) {
                     // this call gets the latest block number, will proceed to price check
                     flog.debug(`W3H.gABN: ALCMY; about to call PMTS.refreshAll; currentBlockNumber:${currentBlockNumber};`);
@@ -191,7 +192,7 @@ class Web3Handler {
             Promise.resolve(currentBlockNumberPromise).then(async (currentBlockNumber) => {
                 let blkEndTime = Date.now();
                 let blkTimeDiff = (blkEndTime - blkStartTime) / 1000;
-                flog.debug(`W3H.gIBN: QUIKN; crntBlk#:[${currentBlockNumber}]; T:[${blkTimeDiff}|${formatTime(blkStartTime)}->${formatTime(blkEndTime)}];`);                
+                blkPollLog.debug(`QUIKN; #[${currentBlockNumber}]; T:[${blkTimeDiff}|${formatTime(blkStartTime)}->${formatTime(blkEndTime)}];`);                
                 if (this.updateQuicknodeBlockNum(currentBlockNumber, blkEndTime)) {
                     // this call gets the latest block number, will proceed to price check
                     flog.debug(`W3H.gIBN: QUIKN; about to call PMTS.refreshAll; currentBlockNumber:${currentBlockNumber};`);
@@ -215,7 +216,7 @@ class Web3Handler {
             Promise.resolve(currentBlockNumberPromise).then(async (currentBlockNumber) => {
                 let blkEndTime = Date.now();
                 let blkTimeDiff = (blkEndTime - blkStartTime) / 1000;
-                flog.debug(`W3H.gLBN: LOCAL; crntBlk#:[${currentBlockNumber}]; T:[${blkTimeDiff}|${formatTime(blkStartTime)}->${formatTime(blkEndTime)}];`);
+                blkPollLog.debug(`LOCAL; #[${currentBlockNumber}]; T:[${blkTimeDiff}|${formatTime(blkStartTime)}->${formatTime(blkEndTime)}];`);
                 //let [highestCurrentBlockNumber, isWinnerFromLocal] = this.getHighestCurrentBlockNumber();
                 if (this.updateLocalBlockNum(currentBlockNumber, blkEndTime)) {
                     // this call gets the latest block number, will proceed to price check

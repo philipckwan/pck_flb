@@ -16,6 +16,7 @@ DONE(v2.19)-consider to add more web3Provider, i.e. infura, quicknode
  make LOCAL poll more frequent, rely on ALCMY only to detect whether LOCAL has skewed for more than 1 block
 -check spreadsheet, investigate the case when 2 flashloan submitted more than 1~2 sec, with same gasPrice, ends up confirmed in same block, but the position is not back to back
 DONE(v2.21)-bug in Web3Handler to get block number between alchemy vs quicknode
+DONE(v2.22)-separate block num vs block poll logging
 
 resolved:
 DONE(v2.15)-HIGH PRIORITY; first fequent check for blocktime udpated, then issue arb check

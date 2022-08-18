@@ -21,6 +21,7 @@ const init = () => {
   let statsFileLoggerFilepath = process.env.STATSFILE_LOGGER_FILEPATH ? process.env.STATSFILE_LOGGER_FILEPATH : "log/pck_stats.log";
   let flashloanTxLoggerFilepath = process.env.FLASHLOAN_TX_LOGGER_FILEPATH ? process.env.FLASHLOAN_TX_LOGGER_FILEPATH : "log/pck-flashloan_tx.log";
   let blockNumLoggerFilepath = process.env.BLOCKNUM_LOGGER_FILEPATH ? process.env.BLOCKNUM_LOGGER_FILEPATH : "log/pck-blockNum.log";
+  let blockPollLoggerFilepath = process.env.BLOCKPOLL_LOGGER_FILEPATH ? process.env.BLOCKPOLL_LOGGER_FILEPATH : "log/pck-blockPoll.log";
 
   log4js.configure({
     appenders: {
@@ -28,6 +29,7 @@ const init = () => {
       statsFile: { type:"file", filename:statsFileLoggerFilepath, layout:{type:"pattern", pattern:"%m"}},
       flashloanTxFile: { type:"file", filename:flashloanTxLoggerFilepath, layout:{type:"pattern", pattern:"%d{MM/ddThh:mm:ss:SSS};%m"}},
       blockNumFile: { type:"file", filename:blockNumLoggerFilepath, layout:{type:"pattern", pattern:"%m"}},
+      blockPollFile: { type:"file", filename:blockPollLoggerFilepath, layout:{type:"pattern", pattern:"%d{MM/ddThh:mm:ss:SSS};%m"}},
       console: { type:"console"}
     },
     categories: {
@@ -35,6 +37,7 @@ const init = () => {
       statsFile: { appenders:["statsFile"], level: "debug"},
       flashloanTxFile: { appenders:["flashloanTxFile"], level: "debug"},
       blockNumFile: { appenders:["blockNumFile"], level: "debug"},
+      blockPollFile: { appenders:["blockPollFile"], level: "debug"},
       default: { appenders: ["console"], level: consoleLoggerLevel }
     },
   });
@@ -48,7 +51,7 @@ export const main = async () => {
 
     //loggerTest();
     let testVal = process.env.TEST_KEY;
-    let msg = `index.main: v2.21; testVal:${testVal};`;
+    let msg = `index.main: v2.22; testVal:${testVal};`;
     clog.debug(msg);
     flog.debug(msg);
 
