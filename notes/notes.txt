@@ -6,17 +6,16 @@
 -add route info, gasPrice to flashloan_tx log
 -consider to adjust the isProfit rate, make it higher; or make it lower as seems the lower rate opportunities last longer? need to analyze flashloan_tx to find out
 -skew block num handling (e.g. local still FL if it is only 0.14 sec or less behind ALCMY)
--block num check sleep time (i.e. no need to check block number for the next 1.5 sec if just recently updated block num)
 -if ALCMY took too long to execute FL, should LOCAL override the FL (i.e. with higher gasPrice?); 
  probably won't happen as now only one of PMTS will do price check for a block
   NO, the average case should be both PMTS will start the price check for a block, but likely LOCAL will finish sooner
  maybe let the ALCMY delegate the FL to LOCAL web3Provider?
 DONE(v2.19)-consider to add more web3Provider, i.e. infura, quicknode
--ALCMY block num check took too long to response (i.e. > 1 sec), causing mislead in block start/end time
- make LOCAL poll more frequent, rely on ALCMY only to detect whether LOCAL has skewed for more than 1 block
 -check spreadsheet, investigate the case when 2 flashloan submitted more than 1~2 sec, with same gasPrice, ends up confirmed in same block, but the position is not back to back
 DONE(v2.21)-bug in Web3Handler to get block number between alchemy vs quicknode
 DONE(v2.22)-separate block num vs block poll logging
+DONE(v2.23)-block num check interval pattern (i.e. from block start time T to T + 1500msec, check every 400 msec, from T+1500 to T+1800, check every 100 msec, etc...)
+-from smart contract to call read function to price check before execute flashloan
 
 resolved:
 DONE(v2.15)-HIGH PRIORITY; first fequent check for blocktime udpated, then issue arb check

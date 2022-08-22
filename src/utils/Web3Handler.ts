@@ -1,15 +1,20 @@
 import {ethers} from "ethers";
 import {PCKFLBConfig} from "../config";
 import {formatTime} from "../utility";
-import {ParallelMultiTradesStrategy} from "../strategy/ParallelMultiTradesStrategy";
+//import {ParallelMultiTradesStrategy} from "../strategy/ParallelMultiTradesStrategy";
+import {BlockNumHandler} from "./BlockNumHandler";
 import * as log4js from "log4js";
 
 const flog = log4js.getLogger("file");
 const clog = log4js.getLogger("console");
 const blkNumLog = log4js.getLogger("blockNumFile");
-const blkPollLog = log4js.getLogger("blockPollFile");
+//const blkPollLog = log4js.getLogger("blockPollFile");
 
 class Web3Handler {
+    static readonly LOCAL = "LOCAL";
+    static readonly ALCMY = "ALCMY";
+    static readonly QUIKN = "QUIKN";
+
     private static _instance: Web3Handler;
 
     private constructor() {
@@ -21,8 +26,23 @@ class Web3Handler {
     }
 
     public isInited:boolean = false;
+    public globalHighestBlockNum:number = -1;
+    public globalHighestBlockStartTime:number = -1;
     //public web3Provider:ethers.providers.StaticJsonRpcProvider;
     //public web3Signer:ethers.Wallet;
+
+    private alchemyWeb3Provider:ethers.providers.StaticJsonRpcProvider;
+    private alchemyBlockNumHandler:BlockNumHandler;
+
+    private quicknodeWeb3Provider:ethers.providers.StaticJsonRpcProvider;
+    private quicknodeBlockNumHandler:BlockNumHandler;
+
+    private localWeb3Provider:ethers.providers.StaticJsonRpcProvider;
+    private localBlockNumHandler:BlockNumHandler;
+
+    private laggingCount:Map<string,number> = new Map();
+
+    /*
     public alchemyPMTS:ParallelMultiTradesStrategy;
     public alchemyWeb3Provider:ethers.providers.StaticJsonRpcProvider;
     public alchemyCurrentBlockNum:number = -1;
@@ -39,6 +59,7 @@ class Web3Handler {
     private localCurrentBlockStartTime:number = -1;
 
     private previousBlockEndTime:number = -1;
+    */
 
     public init():void {
         if (this.isInited) {
@@ -47,29 +68,33 @@ class Web3Handler {
             flog.warn(msg);
             return;
         }
-        let msg = `Web3Handler.init: START; alchemyWeb3URL:${PCKFLBConfig.alchemyWeb3URL}; localWeb3URL:${PCKFLBConfig.localWeb3URL};`;
+        let msg = `Web3Handler.init: START; localWeb3URL:${PCKFLBConfig.localWeb3URL}; alchemyWeb3URL:${PCKFLBConfig.alchemyWeb3URL}; quicknodeWeb3URL:${PCKFLBConfig.quicknodeWeb3URL};`;
         clog.info(msg);
-        flog.info(msg);        
+        flog.info(msg);      
+        
+        
+        if (PCKFLBConfig.localBlockNumPollEnabled) {
+            //this.processBlockNumberPollPatternString(PCKFLBConfig.localBlockNumPollIntervalPattern);
+            this.laggingCount.set(Web3Handler.LOCAL, 0);
+            this.localWeb3Provider = new ethers.providers.StaticJsonRpcProvider(PCKFLBConfig.localWeb3URL);
+            this.localBlockNumHandler = new BlockNumHandler(Web3Handler.LOCAL);
+            this.localBlockNumHandler.init(this.localWeb3Provider, PCKFLBConfig.localFlashloanCheckEnabled, 0, PCKFLBConfig.localBlockNumPollIntervalPattern);
+        }
 
         if (PCKFLBConfig.alchemyBlockNumPollEnabled) {
-            this.alchemyPMTS = new ParallelMultiTradesStrategy(ParallelMultiTradesStrategy.ALCMY);
+            //this.processBlockNumberPollPatternString(PCKFLBConfig.alchemyBlockNumPollIntervalPattern);
+            this.laggingCount.set(Web3Handler.ALCMY, 0);
             this.alchemyWeb3Provider = new ethers.providers.StaticJsonRpcProvider(PCKFLBConfig.alchemyWeb3URL);
-            this.alchemyPMTS.init(this.alchemyWeb3Provider);
-            setInterval(() => {this.getAlchemyBlockNum()}, PCKFLBConfig.alchemyBlockNumPollIntervalMsec);
+            this.alchemyBlockNumHandler = new BlockNumHandler(Web3Handler.ALCMY);
+            this.alchemyBlockNumHandler.init(this.alchemyWeb3Provider, PCKFLBConfig.alchemyFlashloanCheckEnabled, 1, PCKFLBConfig.alchemyBlockNumPollIntervalPattern);
         }
 
         if (PCKFLBConfig.quicknodeBlockNumPollEnabled) {
-            this.quicknodePMTS = new ParallelMultiTradesStrategy(ParallelMultiTradesStrategy.QUIKN);
+            //this.processBlockNumberPollPatternString(PCKFLBConfig.quicknodeBlockNumPollIntervalPattern);
+            this.laggingCount.set(Web3Handler.QUIKN, 0);
             this.quicknodeWeb3Provider = new ethers.providers.StaticJsonRpcProvider(PCKFLBConfig.quicknodeWeb3URL);
-            this.quicknodePMTS.init(this.quicknodeWeb3Provider);
-            setInterval(() => {this.getQuicknodeBlockNum()}, PCKFLBConfig.quicknodeBlockNumPollIntervalMsec);
-        }
-
-        if (PCKFLBConfig.localBlockNumPollEnabled) {
-            this.localPMTS = new ParallelMultiTradesStrategy(ParallelMultiTradesStrategy.LOCAL);
-            this.localWeb3Provider = new ethers.providers.StaticJsonRpcProvider(PCKFLBConfig.localWeb3URL);
-            this.localPMTS.init(this.localWeb3Provider);
-            setInterval(() => {this.getLocalBlockNum()}, PCKFLBConfig.localBlockNumPollIntervalMsec);
+            this.quicknodeBlockNumHandler = new BlockNumHandler(Web3Handler.QUIKN);
+            this.quicknodeBlockNumHandler.init(this.quicknodeWeb3Provider, PCKFLBConfig.quicknodeFlashloanCheckEnabled, 2, PCKFLBConfig.quicknodeBlockNumPollIntervalPattern);
         }
 
         msg = `Web3Handler.init: DONE;`;
@@ -84,6 +109,7 @@ class Web3Handler {
     }
     */
 
+    /*
     public getThisProviderCurrentBlockNumber(providerName:string):number {
         if (providerName == ParallelMultiTradesStrategy.ALCMY) {
             return this.alchemyCurrentBlockNum;
@@ -97,16 +123,21 @@ class Web3Handler {
         } 
         return this.alchemyCurrentBlockNum;
     }
+    */
 
-    public getHighestBlockNumber():number {
-        let highestBlockNumber = this.localCurrentBlockNum >= this.alchemyCurrentBlockNum ? this.localCurrentBlockNum : this.alchemyCurrentBlockNum;
-        return this.quicknodeCurrentBlockNum >= highestBlockNumber ? this.quicknodeCurrentBlockNum : highestBlockNumber;
+    public getGlobalHighestBlockNumber():number {
+        return this.globalHighestBlockNum;
+    }
+
+    public getGlobalHighestBlockStartTime():number {
+        return this.globalHighestBlockStartTime;
     }
 
     public getAvailableWeb3Provider():ethers.providers.StaticJsonRpcProvider {
-        return this.localCurrentBlockNum >= this.alchemyCurrentBlockNum ? this.localWeb3Provider : this.alchemyWeb3Provider;
+        return PCKFLBConfig.localBlockNumPollEnabled ? this.localWeb3Provider : this.alchemyWeb3Provider;
     }
 
+    /*
     // returns true if the input blockNum is more recent than the previous blockNum
     private updateAlchemyBlockNum(blockNum:number, blockStartTime:number):boolean {
         let isUpdated:boolean = false;
@@ -145,21 +176,29 @@ class Web3Handler {
         }
         return isUpdated;
     }
+    */
 
-    // whichever (LOCAL vs ALCMY) get the latest highest block number, means the previous block already end
+    // whichever (LOCAL vs ALCMY vs QUIKN) get the latest highest block number, means the previous block already end
     // thus, register its end time with the latest highest block start time
-    private updatePreviousBlockEndTime(highestInstanceBlockNum:number, highestInstanceBlockStartTime:number):boolean {
+    public updateGlobalHighestBlock(instanceName:string, instanceBlockNum:number, instanceBlockStartTime:number):boolean {
         let isUpdated:boolean = false;
-        let highestBlockNumber = this.getHighestBlockNumber();
-        if (highestInstanceBlockNum > highestBlockNumber) {
-            let previousPreviousBlockEndTime = this.previousBlockEndTime;
-            this.previousBlockEndTime = highestInstanceBlockStartTime;
-            let previousBlockDuration = ((this.previousBlockEndTime - previousPreviousBlockEndTime) / 1000).toFixed(3);
-            blkNumLog.debug(`END@${highestBlockNumber}|        |        |        |T[${formatTime(previousPreviousBlockEndTime)}..${formatTime(this.previousBlockEndTime)}]|blkDur:${previousBlockDuration}|`);
+        
+        if (instanceBlockNum > this.globalHighestBlockNum) {
+            let previousBlockNum = this.globalHighestBlockNum;
+            let previousBlockStartTime = this.globalHighestBlockStartTime;
+            this.globalHighestBlockNum = instanceBlockNum;
+            this.globalHighestBlockStartTime = instanceBlockStartTime;
+            let previousBlockDurationMSec = this.globalHighestBlockStartTime - previousBlockStartTime;
+            blkNumLog.debug(`new:   ${instanceName}|----${previousBlockNum}..${this.globalHighestBlockNum}----|T[${formatTime(previousBlockStartTime)}..${formatTime(this.globalHighestBlockStartTime)}]|blkDur:${previousBlockDurationMSec}|`);
+        } else if (instanceBlockNum < this.globalHighestBlockNum) {
+            let aLaggingCount = this.laggingCount.get(instanceName)! + 1;
+            this.laggingCount.set(instanceName, aLaggingCount);
+            blkNumLog.debug(`lag:   ${instanceName}|----${instanceBlockNum}<<${this.globalHighestBlockNum}----|count:${aLaggingCount}|`);
         }
         return isUpdated;
     }
 
+    /*
     private getAlchemyBlockNum():void {
         //flog.debug(`W3H.gABN: 1.0`);
         try {
@@ -232,6 +271,7 @@ class Web3Handler {
             flog.error(ex);
         }     
     }
+    */
 
 }
 

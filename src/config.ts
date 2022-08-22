@@ -30,22 +30,29 @@ class Config
     public flashloanContractAddress:string;
     public getGasPriceField:string;
     public isUseRecentGasPrice:boolean;
-    public arbStrategy:string;
+    //public arbStrategy:string;
     public baseToken:IToken;
     public tradeTokens:IToken[] = [];
     public routers:IRouter[] = [];
     //public currentBlkNumber:number = 0;
 
+    public pollHeartbeatMSec:number;
+
     public alchemyWeb3URL:string;
-    public alchemyBlockNumPollIntervalMsec:number;
+    //public alchemyBlockNumPollIntervalMsec:number;
+    public alchemyBlockNumPollIntervalPattern:string;
     public alchemyBlockNumPollEnabled:boolean = false;
     public alchemyFlashloanCheckEnabled:boolean = false;
+
     public quicknodeWeb3URL:string;
-    public quicknodeBlockNumPollIntervalMsec:number;
+    //public quicknodeBlockNumPollIntervalMsec:number;
+    public quicknodeBlockNumPollIntervalPattern:string;
     public quicknodeBlockNumPollEnabled:boolean = false;
     public quicknodeFlashloanCheckEnabled:boolean = false;
+
     public localWeb3URL:string;
-    public localBlockNumPollIntervalMsec:number;
+    //public localBlockNumPollIntervalMsec:number;
+    public localBlockNumPollIntervalPattern:string;
     public localBlockNumPollEnabled:boolean = false;
     public localFlashloanCheckEnabled:boolean = false;
     public localBlockNumSkewTolerance:number;
@@ -94,8 +101,7 @@ class Config
 
         this.getGasPriceField = process.env.GET_GAS_PRICE_FIELD ? process.env.GET_GAS_PRICE_FIELD : "";
         this.isUseRecentGasPrice = process.env.IS_USE_RECENT_GAS_PRICE ? process.env.IS_USE_RECENT_GAS_PRICE  === "true": false;
-        this.arbStrategy = process.env.ARB_STRATEGY ? process.env.ARB_STRATEGY : "PARALLEL_V2";
-
+        
         let baseTokenStr = process.env.BASE_TOKEN ? process.env.BASE_TOKEN : "n/a";
         let baseTokenStrSplit = baseTokenStr.split(":");
         this.baseToken = ERC20_TOKEN[baseTokenStrSplit[0].toUpperCase()];
@@ -113,18 +119,23 @@ class Config
         let routersListStr = process.env.ROUTERS_LIST ? process.env.ROUTERS_LIST : "";
         this.routers = parseRouterLists(routersListStr);
 
+        this.pollHeartbeatMSec = process.env.POLL_HEARTBEAT_MSEC ? parseInt(process.env.POLL_HEARTBEAT_MSEC) : 200;
+
         this.alchemyWeb3URL = process.env.ALCHEMY_RPC_URL ? process.env.ALCHEMY_RPC_URL : "";
-        this.alchemyBlockNumPollIntervalMsec = process.env.ALCHEMY_BLOCKNUM_POLL_INTERVAL_MSEC ? parseInt(process.env.ALCHEMY_BLOCKNUM_POLL_INTERVAL_MSEC) : 2000;
+        //this.alchemyBlockNumPollIntervalMsec = process.env.ALCHEMY_BLOCKNUM_POLL_INTERVAL_MSEC ? parseInt(process.env.ALCHEMY_BLOCKNUM_POLL_INTERVAL_MSEC) : 2000;
+        this.alchemyBlockNumPollIntervalPattern = process.env.ALCHEMY_BLOCKNUM_POLL_INTERVAL_PATTERN ? process.env.ALCHEMY_BLOCKNUM_POLL_INTERVAL_PATTERN : "2200";
         this.alchemyBlockNumPollEnabled = process.env.ALCHEMY_BLOCKNUM_POLL_ENABLED ? process.env.ALCHEMY_BLOCKNUM_POLL_ENABLED  === "true": false;
         this.alchemyFlashloanCheckEnabled = process.env.ALCHEMY_FLASHLOAN_CHECK_ENABLED ? process.env.ALCHEMY_FLASHLOAN_CHECK_ENABLED  === "true": false;
 
         this.quicknodeWeb3URL = process.env.QUICKNODE_RPC_URL ? process.env.QUICKNODE_RPC_URL : "";
-        this.quicknodeBlockNumPollIntervalMsec = process.env.QUICKNODE_BLOCKNUM_POLL_INTERVAL_MSEC ? parseInt(process.env.QUICKNODE_BLOCKNUM_POLL_INTERVAL_MSEC) : 2000;
+        //this.quicknodeBlockNumPollIntervalMsec = process.env.QUICKNODE_BLOCKNUM_POLL_INTERVAL_MSEC ? parseInt(process.env.QUICKNODE_BLOCKNUM_POLL_INTERVAL_MSEC) : 2000;
+        this.quicknodeBlockNumPollIntervalPattern = process.env.QUICKNODE_BLOCKNUM_POLL_INTERVAL_PATTERN ? process.env.QUICKNODE_BLOCKNUM_POLL_INTERVAL_PATTERN : "2200";
         this.quicknodeBlockNumPollEnabled = process.env.QUICKNODE_BLOCKNUM_POLL_ENABLED ? process.env.QUICKNODE_BLOCKNUM_POLL_ENABLED  === "true": false;
         this.quicknodeFlashloanCheckEnabled = process.env.QUICKNODE_FLASHLOAN_CHECK_ENABLED ? process.env.QUICKNODE_FLASHLOAN_CHECK_ENABLED  === "true": false;
 
         this.localWeb3URL = process.env.LOCAL_RPC_URL ? process.env.LOCAL_RPC_URL : "";
-        this.localBlockNumPollIntervalMsec = process.env.LOCAL_BLOCKNUM_POLL_INTERVAL_MSEC ? parseInt(process.env.LOCAL_BLOCKNUM_POLL_INTERVAL_MSEC) : 2000;
+        //this.localBlockNumPollIntervalMsec = process.env.LOCAL_BLOCKNUM_POLL_INTERVAL_MSEC ? parseInt(process.env.LOCAL_BLOCKNUM_POLL_INTERVAL_MSEC) : 2000;
+        this.localBlockNumPollIntervalPattern = process.env.LOCAL_BLOCKNUM_POLL_INTERVAL_PATTERN ? process.env.LOCAL_BLOCKNUM_POLL_INTERVAL_PATTERN : "2100";
         this.localBlockNumPollEnabled = process.env.LOCAL_BLOCKNUM_POLL_ENABLED ? process.env.LOCAL_BLOCKNUM_POLL_ENABLED  === "true": false;
         this.localFlashloanCheckEnabled = process.env.LOCAL_FLASHLOAN_CHECK_ENABLED ? process.env.LOCAL_FLASHLOAN_CHECK_ENABLED  === "true": false;
         this.localBlockNumSkewTolerance = process.env.LOCAL_BLOCKNUM_SKEW_TOLERANCE ? parseInt(process.env.LOCAL_BLOCKNUM_SKEW_TOLERANCE) : 10;
@@ -146,19 +157,19 @@ class Config
         clog.debug(msg);
         flog.debug(msg);
 
-        msg=`Config.display: arbStrategy:${this.arbStrategy}; privateKey(partial):${this.privateKey.substring(0,6)}...; flashloanContractAddress:${this.flashloanContractAddress};`;
+        msg=`Config.display: pollHeartbeatMSec:${this.pollHeartbeatMSec}; privateKey(partial):${this.privateKey.substring(0,6)}...; flashloanContractAddress:${this.flashloanContractAddress};`;
         clog.debug(msg);
         flog.debug(msg);
 
-        msg=`Config.display: ALCMY: web3URL:${this.alchemyWeb3URL}; blockNumPollIntervalMsec:${this.alchemyBlockNumPollIntervalMsec}; blockNumPollEnabled:${this.alchemyBlockNumPollEnabled}; flashloanCheckEnabled:${this.alchemyFlashloanCheckEnabled};`;
+        msg=`Config.display: ALCMY: web3URL:${this.alchemyWeb3URL}; blockNumPollIntervalPattern:${this.alchemyBlockNumPollIntervalPattern}; blockNumPollEnabled:${this.alchemyBlockNumPollEnabled}; flashloanCheckEnabled:${this.alchemyFlashloanCheckEnabled};`;
         clog.debug(msg);
         flog.debug(msg);
 
-        msg=`Config.display: QUIKN: web3URL:${this.quicknodeWeb3URL}; blockNumPollIntervalMsec:${this.quicknodeBlockNumPollIntervalMsec}; blockNumPollEnabled:${this.quicknodeBlockNumPollEnabled}; flashloanCheckEnabled:${this.quicknodeFlashloanCheckEnabled};`;
+        msg=`Config.display: QUIKN: web3URL:${this.quicknodeWeb3URL}; blockNumPollIntervalPattern:${this.quicknodeBlockNumPollIntervalPattern}; blockNumPollEnabled:${this.quicknodeBlockNumPollEnabled}; flashloanCheckEnabled:${this.quicknodeFlashloanCheckEnabled};`;
         clog.debug(msg);
         flog.debug(msg);
 
-        msg=`Config.display: LOCAL: web3URL:${this.localWeb3URL}; blockNumPollIntervalMsec:${this.localBlockNumPollIntervalMsec}; blockNumPollEnabled:${this.localBlockNumPollEnabled}; flashloanCheckEnabled:${this.localFlashloanCheckEnabled};`;
+        msg=`Config.display: LOCAL: web3URL:${this.localWeb3URL}; blockNumPollIntervalPattern:${this.localBlockNumPollIntervalPattern}; blockNumPollEnabled:${this.localBlockNumPollEnabled}; flashloanCheckEnabled:${this.localFlashloanCheckEnabled};`;
         clog.debug(msg);
         flog.debug(msg);
 
