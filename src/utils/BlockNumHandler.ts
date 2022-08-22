@@ -25,6 +25,8 @@ export class BlockNumHandler {
     public highestBlockStartTime:number = -1;
     private displayLeft:string = "";
     private displayRight:string = "";
+    private displayLeftPoll:string = "";
+    private displayRightPoll:string = "";
 
     private pollIntervalTable:number[][] = [];
     private nextBlockCheckTime:number = -1;
@@ -45,9 +47,11 @@ export class BlockNumHandler {
         this.web3Provider = web3Provider;
         for (let i = 0; i < displayColumnIdx; i++) {
             this.displayLeft += "        |";
+            this.displayLeftPoll += "         |";
         }
         for (let i = displayColumnIdx; i < 2; i++) {
             this.displayRight += "|        ";
+            this.displayRightPoll += "|         ";
         }
         this.pmts.init(this.web3Provider, isInstanceDoFlashloan, this);
         setInterval(() => {this.pollBlockNum()}, PCKFLBConfig.pollHeartbeatMSec);
@@ -112,12 +116,13 @@ export class BlockNumHandler {
             }
             let currentBlockNumberPromise = this.web3Provider.getBlockNumber();
             let currentTDiff = blockCheckStartTime - this.highestBlockStartTime;
-            this.nextBlockCheckTime = blockCheckStartTime + this.getNextPollTOffset(currentTDiff);
+            let nextPollTOffset = this.getNextPollTOffset(currentTDiff);
+            this.nextBlockCheckTime = blockCheckStartTime + nextPollTOffset;
             //console.log(`____blockCheckStartTime:${blockCheckStartTime}; highestBlockStartTime:${this.highestBlockStartTime}; currentTDiff:${currentTDiff}; nextBlockCheckTime:${this.nextBlockCheckTime};`);
             Promise.resolve(currentBlockNumberPromise).then(async (currentBlockNumber) => {
                 let blockCheckEndTime = Date.now();
                 let blockCheckTimeDiffMSec = blockCheckEndTime - blockCheckStartTime;
-                blkPollLog.debug(`${this.name}; #[${currentBlockNumber}]; T:[${blockCheckTimeDiffMSec.toString().padStart(5)}|${formatTime(blockCheckStartTime)}->${formatTime(blockCheckEndTime)}];`);
+                blkPollLog.debug(`${this.name}; #[${currentBlockNumber}]; T:[${blockCheckTimeDiffMSec.toString().padStart(5)}|${this.displayLeftPoll}${formatTime(blockCheckStartTime)}${this.displayRightPoll}|${formatTime(blockCheckEndTime)}];[${nextPollTOffset}]`);
                 
                 if (this.updateBlockNum(currentBlockNumber, blockCheckEndTime)) {
                     // this call gets the latest block number, may proceed to price check

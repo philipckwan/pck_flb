@@ -16,6 +16,7 @@ DONE(v2.21)-bug in Web3Handler to get block number between alchemy vs quicknode
 DONE(v2.22)-separate block num vs block poll logging
 DONE(v2.23)-block num check interval pattern (i.e. from block start time T to T + 1500msec, check every 400 msec, from T+1500 to T+1800, check every 100 msec, etc...)
 -from smart contract to call read function to price check before execute flashloan
+DONE(v2.24)-minor update to blk poll logging
 
 resolved:
 DONE(v2.15)-HIGH PRIORITY; first fequent check for blocktime udpated, then issue arb check

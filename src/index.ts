@@ -29,7 +29,7 @@ const init = () => {
       statsFile: { type:"file", filename:statsFileLoggerFilepath, layout:{type:"pattern", pattern:"%m"}},
       flashloanTxFile: { type:"file", filename:flashloanTxLoggerFilepath, layout:{type:"pattern", pattern:"%d{MM/ddThh:mm:ss:SSS};%m"}},
       blockNumFile: { type:"file", filename:blockNumLoggerFilepath, layout:{type:"pattern", pattern:"%m"}},
-      blockPollFile: { type:"file", filename:blockPollLoggerFilepath, layout:{type:"pattern", pattern:"%d{MM/ddThh:mm:ss:SSS};%m"}},
+      blockPollFile: { type:"file", filename:blockPollLoggerFilepath, layout:{type:"pattern", pattern:"%m"}},
       console: { type:"console"}
     },
     categories: {
@@ -51,7 +51,7 @@ export const main = async () => {
 
     //loggerTest();
     let testVal = process.env.TEST_KEY;
-    let msg = `index.main: v2.23; testVal:${testVal};`;
+    let msg = `index.main: v2.24; testVal:${testVal};`;
     clog.debug(msg);
     flog.debug(msg);
 
