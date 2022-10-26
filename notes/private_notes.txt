@@ -6,3 +6,10 @@ run both alchemy API and local API blocknumber check
  -but fall back to alchemy if it detects blocknumber update first
 -no need to run any more price check if blocknumber didn't change
 -or, do not price check from alchemy API, and do not flashloan if node local blocktime is delayed (by too much, i.e. no longer same block)
+-ALCMY block num check took too long to response (i.e. > 1 sec), causing mislead in block start/end time
+ make LOCAL poll more frequent, rely on ALCMY only to detect whether LOCAL has skewed for more than 1 block
+-see block 32002169, LOCAL vs QUIKN, prices are different?!
+
+ALCHEMY_BLOCKNUM_POLL_INTERVAL_PATTERN=500@1500;200@2500;400
+QUICKNODE_BLOCKNUM_POLL_INTERVAL_PATTERN=500@1500;100@2500;300
+LOCAL_BLOCKNUM_POLL_INTERVAL_PATTERN=300@1500;100@1800;20@2200;100@2500;200
